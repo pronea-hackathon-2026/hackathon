@@ -11,6 +11,7 @@ com/talentlens/controller/CandidateController$1.class
 com/talentlens/controller/CandidateController.class
 com/talentlens/controller/CandidateController$1Scored.class
 com/talentlens/config/CorsConfig.class
+com/talentlens/service/ScoringService$2.class
 com/talentlens/TalentLensApplication.class
 com/talentlens/model/Job.class
 com/talentlens/service/SeedService.class

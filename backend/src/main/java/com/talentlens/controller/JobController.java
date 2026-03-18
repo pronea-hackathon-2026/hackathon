@@ -35,13 +35,16 @@ public class JobController {
     }
 
     @PostMapping
-    public Map<String, Object> create(@RequestBody Map<String, String> body) throws Exception {
-        String title = body.get("title");
-        String description = body.getOrDefault("description", "");
+    public Map<String, Object> create(@RequestBody Map<String, Object> body) throws Exception {
+        String title = (String) body.get("title");
+        String description = (String) body.getOrDefault("description", "");
+        Object requirementsObj = body.get("requirements");
+        String requirementsJson = requirementsObj != null ? mapper.writeValueAsString(requirementsObj) : null;
 
         Job job = new Job();
         job.setTitle(title);
         job.setDescription(description);
+        job.setRequirements(requirementsJson);
         jobRepo.save(job);
 
         // Create inbox applications for all existing candidates (match score = 0 until re-scored)
@@ -87,7 +90,7 @@ public class JobController {
                 matchSc = scoring.matchScore(candEmb, jobEmbedding);
             } else {
                 try {
-                    matchSc = scoring.aiMatchScore(job.getTitle(), job.getDescription(), cand.getRawText(), gemini);
+                    matchSc = scoring.aiMatchScore(job.getTitle(), job.getDescription(), job.getRequirements(), cand.getRawText(), gemini);
                 } catch (Exception e) {
                     matchSc = scoring.keywordMatchScore(job.getTitle(), job.getDescription(), cand.getRawText());
                 }
@@ -119,6 +122,15 @@ public class JobController {
         m.put("title", j.getTitle());
         m.put("description", j.getDescription());
         m.put("created_at", j.getCreatedAt() != null ? j.getCreatedAt().toString() : null);
+        if (j.getRequirements() != null) {
+            try {
+                m.put("requirements", mapper.readValue(j.getRequirements(), Object.class));
+            } catch (Exception e) {
+                m.put("requirements", null);
+            }
+        } else {
+            m.put("requirements", null);
+        }
         return m;
     }
 }

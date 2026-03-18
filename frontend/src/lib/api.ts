@@ -33,10 +33,10 @@ export const api = {
 
   jobs: {
     list: () => req<Job[]>('/jobs'),
-    create: (title: string, description: string) =>
+    create: (title: string, description: string, requirements?: JobRequirements) =>
       req<Job>('/jobs', {
         method: 'POST',
-        body: JSON.stringify({ title, description }),
+        body: JSON.stringify({ title, description, requirements }),
       }),
     delete: (id: string) => req(`/jobs/${id}`, { method: 'DELETE' }),
     rescore: (id: string) => req(`/jobs/${id}/rescore`, { method: 'POST' }),
@@ -87,6 +87,7 @@ export interface ParsedCV {
   name: string
   email: string | null
   phone: string | null
+  linkedin_url: string | null
   skills: string[]
   languages: string[]
   education: { degree: string; institution: string; year: string | null }[]
@@ -102,10 +103,34 @@ export interface ParsedCV {
   red_flags: string[]
 }
 
+export interface JobRequirements {
+  required_skills: string[]
+  nice_to_have_skills: string[]
+  min_years_experience: number
+  max_years_experience: number
+  seniority: 'junior' | 'mid' | 'senior' | 'lead' | 'director' | ''
+  location_type: 'remote' | 'hybrid' | 'onsite' | ''
+  employment_type: 'full_time' | 'part_time' | 'contract' | 'internship' | ''
+  education: 'none' | 'bachelor' | 'master' | 'phd' | ''
+  languages: string[]
+  responsibilities: string[]
+  success_description: string
+  dealbreakers: string[]
+  green_flags: string[]
+  scoring_weights: {
+    technical_skills: number
+    experience_years: number
+    domain_background: number
+    education: number
+    career_trajectory: number
+  }
+}
+
 export interface Job {
   id: string
   title: string
   description: string
+  requirements: JobRequirements | null
   embedding: number[] | null
   created_at: string
 }

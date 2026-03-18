@@ -20,6 +20,9 @@ public class Job {
     @Column(columnDefinition = "TEXT")
     private String embedding;       // JSON string: List<Double>
 
+    @Column(columnDefinition = "TEXT")
+    private String requirements;    // JSON string: JobRequirements
+
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -38,6 +41,9 @@ public class Job {
 
     public String getEmbedding() { return embedding; }
     public void setEmbedding(String embedding) { this.embedding = embedding; }
+
+    public String getRequirements() { return requirements; }
+    public void setRequirements(String requirements) { this.requirements = requirements; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

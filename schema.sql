@@ -18,12 +18,16 @@ create table if not exists candidates (
 
 -- ─── jobs ─────────────────────────────────────────────────────────────────────
 create table if not exists jobs (
-  id          uuid primary key default gen_random_uuid(),
-  title       text not null,
-  description text,
-  embedding   vector(1536),
-  created_at  timestamptz default now()
+  id           uuid primary key default gen_random_uuid(),
+  title        text not null,
+  description  text,
+  requirements jsonb,             -- structured AI scoring context
+  embedding    vector(1536),
+  created_at   timestamptz default now()
 );
+
+-- Migration for existing installations:
+-- alter table jobs add column if not exists requirements jsonb;
 
 -- ─── applications ─────────────────────────────────────────────────────────────
 create table if not exists applications (

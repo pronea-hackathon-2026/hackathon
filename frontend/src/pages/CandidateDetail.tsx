@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, Mail, Phone, MapPin, AlertTriangle, Clock, Sparkles,
-  CheckCircle, Star, ExternalLink, Video
+  ArrowLeft, Mail, Phone, AlertTriangle, Clock, Sparkles,
+  CheckCircle, ExternalLink, Video, Linkedin
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -200,10 +200,24 @@ export default function CandidateDetail() {
                       <span>{parsed.email}</span>
                     </div>
                   )}
-                  {parsed?.phone && (
+                  {parsed?.phone && parsed.phone !== 'N/A' && (
                     <div className="flex items-center gap-2 text-sm">
                       <Phone size={14} className="text-muted-foreground" />
                       <span>{parsed.phone}</span>
+                    </div>
+                  )}
+                  {parsed?.linkedin_url && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Linkedin size={14} className="text-muted-foreground" />
+                      <a
+                        href={parsed.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline flex items-center gap-1"
+                      >
+                        LinkedIn Profile
+                        <ExternalLink size={11} />
+                      </a>
                     </div>
                   )}
                 </CardContent>

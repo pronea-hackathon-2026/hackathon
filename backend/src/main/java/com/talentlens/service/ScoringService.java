@@ -72,17 +72,69 @@ public class ScoringService {
 
     // ── AI match score via Gemini text generation ─────────────────────────────
 
-    public int aiMatchScore(String jobTitle, String jobDescription, String candidateRawText, GeminiService gemini) {
+    public int aiMatchScore(String jobTitle, String jobDescription, String requirementsJson, String candidateRawText, GeminiService gemini) {
         if (candidateRawText == null || candidateRawText.isBlank()) return 0;
-        String prompt = "Rate how well this candidate matches the job on a scale of 0-100. Return ONLY a single integer, nothing else.\n\n" +
-            "Job Title: " + jobTitle + "\n" +
-            "Job Description: " + (jobDescription != null ? jobDescription : "") + "\n\n" +
-            "Candidate CV:\n" + (candidateRawText.length() > 2000 ? candidateRawText.substring(0, 2000) : candidateRawText);
+
+        StringBuilder ctx = new StringBuilder();
+        ctx.append("Job Title: ").append(jobTitle).append("\n");
+
+        if (requirementsJson != null && !requirementsJson.isBlank()) {
+            try {
+                Map<String, Object> req = mapper.readValue(requirementsJson, new TypeReference<Map<String, Object>>() {});
+                appendIfPresent(ctx, "Seniority", req.get("seniority"));
+                appendIfPresent(ctx, "Location", req.get("location_type"));
+                appendIfPresent(ctx, "Employment Type", req.get("employment_type"));
+                appendIfPresent(ctx, "Education Required", req.get("education"));
+                Object minYears = req.get("min_years_experience");
+                Object maxYears = req.get("max_years_experience");
+                if (minYears != null || maxYears != null) {
+                    ctx.append("Experience: ").append(minYears != null ? minYears : "0")
+                       .append("-").append(maxYears != null ? maxYears : "any").append(" years\n");
+                }
+                appendListIfPresent(ctx, "REQUIRED SKILLS", req.get("required_skills"));
+                appendListIfPresent(ctx, "NICE-TO-HAVE SKILLS", req.get("nice_to_have_skills"));
+                appendListIfPresent(ctx, "LANGUAGES", req.get("languages"));
+                appendListIfPresent(ctx, "KEY RESPONSIBILITIES", req.get("responsibilities"));
+                appendIfPresent(ctx, "SUCCESS LOOKS LIKE", req.get("success_description"));
+                appendListIfPresent(ctx, "DEAL-BREAKERS (disqualifying)", req.get("dealbreakers"));
+                appendListIfPresent(ctx, "GREEN FLAGS (strong positive signals)", req.get("green_flags"));
+                Object weights = req.get("scoring_weights");
+                if (weights instanceof Map<?,?> wMap) {
+                    ctx.append("SCORING PRIORITY: technical_skills=").append(wMap.get("technical_skills"))
+                       .append("%, experience=").append(wMap.get("experience_years"))
+                       .append("%, domain=").append(wMap.get("domain_background"))
+                       .append("%, education=").append(wMap.get("education"))
+                       .append("%, trajectory=").append(wMap.get("career_trajectory")).append("%\n");
+                }
+            } catch (Exception ignored) {}
+        }
+
+        if (jobDescription != null && !jobDescription.isBlank()) {
+            ctx.append("\nADDITIONAL DESCRIPTION:\n").append(jobDescription).append("\n");
+        }
+
+        String prompt = "Rate how well this candidate matches the job on a scale of 0-100. Return ONLY a single integer, nothing else.\n\n"
+            + ctx
+            + "\nCandidate CV:\n"
+            + (candidateRawText.length() > 3000 ? candidateRawText.substring(0, 3000) : candidateRawText);
+
         String raw = gemini.generate("You are a recruiting expert. Return only a number.", prompt).strip();
-        // Extract first number from response
         java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d+").matcher(raw);
         if (m.find()) return Math.min(100, Math.max(0, Integer.parseInt(m.group())));
         return 0;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void appendListIfPresent(StringBuilder sb, String label, Object value) {
+        if (value instanceof List<?> list && !list.isEmpty()) {
+            sb.append(label).append(": ").append(String.join(", ", (List<String>)(List<?>)list)).append("\n");
+        }
+    }
+
+    private void appendIfPresent(StringBuilder sb, String label, Object value) {
+        if (value != null && !value.toString().isBlank()) {
+            sb.append(label).append(": ").append(value).append("\n");
+        }
     }
 
     // ── Keyword-based match (fallback when embeddings unavailable) ────────────

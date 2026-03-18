@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api, type Application, type AttentionEvent } from '@/lib/api'
+import { useAIProgress } from '@/lib/ai-progress'
 
 export default function InterviewRoom() {
   const { applicationId } = useParams<{ applicationId: string }>()
@@ -21,6 +22,7 @@ export default function InterviewRoom() {
   const transcriptRef = useRef<string[]>([])
   const startTimeRef = useRef(Date.now())
   const gazeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const aiProgress = useAIProgress()
 
   // Track tab switches and window blur
   useEffect(() => {
@@ -48,6 +50,7 @@ export default function InterviewRoom() {
 
   useEffect(() => {
     if (!applicationId) return
+    aiProgress.start()
     Promise.all([
       api.applications.get(applicationId),
       api.interviews.generateQuestions(applicationId),
@@ -63,7 +66,8 @@ export default function InterviewRoom() {
       }
       setApp(appData)
       setQuestions(qs.questions)
-    }).catch(console.error).finally(() => setLoading(false))
+      aiProgress.complete()
+    }).catch((e) => { console.error(e); aiProgress.complete() }).finally(() => setLoading(false))
   }, [applicationId])
 
   const handleNextQuestion = () => {
@@ -78,11 +82,14 @@ export default function InterviewRoom() {
     transcriptRef.current.push(`Q${currentQ + 1}: ${questions[currentQ]}`)
     const transcript = transcriptRef.current.join('\n\n')
     setSubmitting(true)
+    aiProgress.start()
     try {
       await api.interviews.analyze(applicationId, transcript, attentionEventsRef.current)
+      aiProgress.complete()
       navigate(`/review/${applicationId}`)
     } catch (e) {
       console.error(e)
+      aiProgress.complete()
       setSubmitting(false)
     }
   }

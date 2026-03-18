@@ -41,13 +41,17 @@ else
   exit 1
 fi
 
-# ─── Build if needed ──────────────────────────────────────────────────────────
-if [ ! -f "$JAR" ]; then
-  info "Building backend (first run — takes ~60 seconds)..."
-  cd "$BACKEND_DIR"
-  $MVN -q package -DskipTests
-  info "Build complete."
+# ─── Kill any running instance ────────────────────────────────────────────────
+if pkill -f talentlens 2>/dev/null; then
+  info "Stopped existing backend."
+  sleep 1
 fi
+
+# ─── Always rebuild ───────────────────────────────────────────────────────────
+info "Building backend..."
+cd "$BACKEND_DIR"
+$MVN -q package -DskipTests
+info "Build complete."
 
 # ─── Start backend ────────────────────────────────────────────────────────────
 info "Starting Spring Boot backend on http://localhost:8000 ..."

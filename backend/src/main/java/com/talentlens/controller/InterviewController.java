@@ -61,8 +61,22 @@ public class InterviewController {
                     ? jobRepo.findById(app.getJobId()).map(j -> j.getDescription()).orElse("")
                     : "";
 
-                Map<String, Object> analysis = scoring.analyzeInterview(transcript, jobDescription);
                 int attentionScore = scoring.calculateAttentionScore(attentionEvents);
+                Map<String, Object> analysis;
+                try {
+                    analysis = scoring.analyzeInterview(transcript, jobDescription);
+                } catch (Exception geminiEx) {
+                    // Fallback analysis if Gemini fails
+                    int wordCount = transcript.split("\\s+").length;
+                    int baseScore = Math.min(75, 40 + wordCount / 10);
+                    analysis = new java.util.LinkedHashMap<>();
+                    analysis.put("answer_quality_score", baseScore);
+                    analysis.put("communication_score", baseScore);
+                    analysis.put("summary", "Interview completed. AI analysis unavailable — scores are estimated.");
+                    analysis.put("strengths", List.of("Interview completed successfully"));
+                    analysis.put("concerns", List.of("Manual review recommended"));
+                    analysis.put("per_question", List.of());
+                }
 
                 int answerQuality = toInt(analysis.get("answer_quality_score"));
                 int communication = toInt(analysis.get("communication_score"));
@@ -111,7 +125,15 @@ public class InterviewController {
                 List<Object> questions = gemini.generateJsonArray(system, prompt);
                 return ResponseEntity.ok(Map.of("questions", questions));
             } catch (Exception e) {
-                return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+                // Fallback: return generic questions so the interview can still proceed
+                List<String> fallback = List.of(
+                    "Tell me about yourself and your most relevant experience.",
+                    "What technical skills do you bring to this role?",
+                    "Describe a challenging project you led and how you handled it.",
+                    "How do you approach mentoring or collaborating with other engineers?",
+                    "Where do you see yourself growing in the next 2-3 years?"
+                );
+                return ResponseEntity.ok(Map.of("questions", fallback));
             }
         }).orElse(ResponseEntity.notFound().build());
     }

@@ -26,9 +26,9 @@ public class GeminiService {
      */
     @SuppressWarnings("unchecked")
     public String generate(String systemPrompt, String userMessage) {
+        String combinedMessage = systemPrompt + "\n\n" + userMessage;
         Map<String, Object> body = Map.of(
-            "system_instruction", Map.of("parts", List.of(Map.of("text", systemPrompt))),
-            "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userMessage)))),
+            "contents", List.of(Map.of("parts", List.of(Map.of("text", combinedMessage)))),
             "generationConfig", Map.of("temperature", 0.1, "maxOutputTokens", 4096)
         );
 
@@ -47,20 +47,14 @@ public class GeminiService {
     }
 
     /**
-     * Generate text and return as parsed JSON (strips markdown fences if present).
+     * Generate text and return as parsed JSON (extracts first {...} block from response).
      */
     @SuppressWarnings("unchecked")
     public Map<String, Object> generateJson(String systemPrompt, String userMessage) {
         String raw = generate(systemPrompt, userMessage).strip();
-        // Strip markdown code fences
-        if (raw.startsWith("```")) {
-            String[] lines = raw.split("\n");
-            StringBuilder sb = new StringBuilder();
-            for (int i = 1; i < lines.length; i++) {
-                if (!lines[i].equals("```")) sb.append(lines[i]).append("\n");
-            }
-            raw = sb.toString().strip();
-        }
+        int start = raw.indexOf("{");
+        int end = raw.lastIndexOf("}");
+        if (start != -1 && end > start) raw = raw.substring(start, end + 1);
         try {
             return mapper.readValue(raw, Map.class);
         } catch (Exception e) {
@@ -69,19 +63,14 @@ public class GeminiService {
     }
 
     /**
-     * Generate a JSON array (strips markdown fences if present).
+     * Generate a JSON array (extracts first [...] block from response).
      */
     @SuppressWarnings("unchecked")
     public List<Object> generateJsonArray(String systemPrompt, String userMessage) {
         String raw = generate(systemPrompt, userMessage).strip();
-        if (raw.startsWith("```")) {
-            String[] lines = raw.split("\n");
-            StringBuilder sb = new StringBuilder();
-            for (int i = 1; i < lines.length; i++) {
-                if (!lines[i].equals("```")) sb.append(lines[i]).append("\n");
-            }
-            raw = sb.toString().strip();
-        }
+        int start = raw.indexOf("[");
+        int end = raw.lastIndexOf("]");
+        if (start != -1 && end > start) raw = raw.substring(start, end + 1);
         try {
             return mapper.readValue(raw, List.class);
         } catch (Exception e) {

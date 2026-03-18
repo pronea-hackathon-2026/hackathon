@@ -102,7 +102,14 @@ export default function CandidateDetail() {
         <div className="flex gap-2">
           {latestApp && (latestApp.status === 'inbox' || latestApp.status === 'shortlisted') && (
             <Button onClick={handleShortlistAndInvite} disabled={!!inviting}>
-              {inviting ? 'Creating room…' : 'Shortlist & Invite'}
+              <Video size={14} />
+              {inviting ? 'Creating room…' : 'Schedule Interview'}
+            </Button>
+          )}
+          {latestApp?.status === 'interview_scheduled' && (
+            <Button onClick={() => navigate(`/interview/${latestApp.id}`)}>
+              <Video size={14} />
+              Join Interview
             </Button>
           )}
           {latestApp && (latestApp.status === 'interview_done' || latestApp.status === 'final_round') && (
@@ -138,15 +145,15 @@ export default function CandidateDetail() {
 
           {/* Red flags */}
           {parsed?.red_flags && parsed.red_flags.length > 0 && (
-            <Card className="border-red-800">
+            <Card className="border-red-200 bg-red-50">
               <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-red-400 mb-2">
+                <div className="flex items-center gap-2 text-red-600 mb-2">
                   <AlertTriangle size={16} />
                   <span className="font-semibold text-sm">Red Flags</span>
                 </div>
                 <ul className="space-y-1">
                   {parsed.red_flags.map((flag, i) => (
-                    <li key={i} className="text-sm text-red-400/80 flex items-start gap-2">
+                    <li key={i} className="text-sm text-red-600 flex items-start gap-2">
                       <span className="mt-0.5">•</span>
                       <span>{flag}</span>
                     </li>
@@ -158,9 +165,9 @@ export default function CandidateDetail() {
 
           {/* Employment gaps */}
           {parsed?.gaps && parsed.gaps.length > 0 && (
-            <Card className="border-amber-800">
+            <Card className="border-amber-200 bg-amber-50">
               <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-amber-400 mb-2">
+                <div className="flex items-center gap-2 text-amber-600 mb-2">
                   <Clock size={16} />
                   <span className="font-semibold text-sm">Employment Gaps</span>
                 </div>
@@ -282,6 +289,23 @@ export default function CandidateDetail() {
             </TabsContent>
 
             <TabsContent value="interview" className="mt-4 space-y-4">
+              {/* Interview room link */}
+              {latestApp?.interview_room_url && (
+                <Card>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Video size={14} className="text-primary" />
+                      <span className="text-muted-foreground">Interview room:</span>
+                      <span className="font-mono text-xs truncate max-w-xs">{latestApp.interview_room_url}</span>
+                    </div>
+                    <Button size="sm" onClick={() => window.open(latestApp.interview_room_url!, '_blank')}>
+                      <ExternalLink size={13} />
+                      Open
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Generate questions */}
               <Card>
                 <CardHeader>

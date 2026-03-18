@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronRight, Mic, MicOff, Eye, EyeOff } from 'lucide-react'
+import { ChevronRight, Mic, MicOff, Eye, EyeOff, Copy, Check, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +16,7 @@ export default function InterviewRoom() {
   const [loading, setLoading] = useState(true)
   const [ended, setEnded] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [copied, setCopied] = useState(false)
   const attentionEventsRef = useRef<AttentionEvent[]>([])
   const transcriptRef = useRef<string[]>([])
   const startTimeRef = useRef(Date.now())
@@ -50,11 +51,19 @@ export default function InterviewRoom() {
     Promise.all([
       api.applications.get(applicationId),
       api.interviews.generateQuestions(applicationId),
-    ]).then(([appData, qs]) => {
+    ]).then(async ([appData, qs]) => {
+      // Auto-create room if not yet assigned
+      if (!appData.interview_room_url) {
+        try {
+          const res = await api.interviews.invite(applicationId)
+          appData = { ...appData, interview_room_url: res.room_url }
+        } catch (e) {
+          console.error('Failed to create room:', e)
+        }
+      }
       setApp(appData)
       setQuestions(qs.questions)
-      setLoading(false)
-    }).catch(console.error)
+    }).catch(console.error).finally(() => setLoading(false))
   }, [applicationId])
 
   const handleNextQuestion = () => {
@@ -71,7 +80,7 @@ export default function InterviewRoom() {
     setSubmitting(true)
     try {
       await api.interviews.analyze(applicationId, transcript, attentionEventsRef.current)
-      navigate('/thank-you')
+      navigate(`/review/${applicationId}`)
     } catch (e) {
       console.error(e)
       setSubmitting(false)
@@ -113,6 +122,37 @@ export default function InterviewRoom() {
 
       {/* Right: Questions panel */}
       <div className="w-96 flex flex-col border-l border-border bg-card">
+        {/* Share link bar */}
+        {roomUrl && (
+          <div className="px-4 py-3 border-b border-border bg-primary/5 flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground mb-0.5">Candidate join link</p>
+              <p className="text-xs font-mono truncate text-foreground">{roomUrl}</p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="shrink-0"
+              onClick={() => {
+                navigator.clipboard.writeText(roomUrl)
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+              }}
+            >
+              {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+              {copied ? 'Copied!' : 'Copy'}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="shrink-0 px-2"
+              onClick={() => window.open(roomUrl, '_blank')}
+            >
+              <ExternalLink size={13} />
+            </Button>
+          </div>
+        )}
+
         <div className="p-4 border-b border-border">
           <h2 className="font-semibold">Interview Questions</h2>
           <p className="text-sm text-muted-foreground mt-1">

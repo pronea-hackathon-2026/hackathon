@@ -44,7 +44,7 @@ export function ScoreGauge({ score, label, size = 72 }: ScoreGaugeProps) {
   return (
     <div className="flex flex-col items-center gap-1">
       <svg width={size} height={h} viewBox={`0 0 ${size} ${h}`}>
-        <path d={bgPath} fill="none" stroke="#374151" strokeWidth={sw} strokeLinecap="round" />
+        <path d={bgPath} fill="none" stroke="#e2e8f0" strokeWidth={sw} strokeLinecap="round" />
         {valPath && (
           <path d={valPath} fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" />
         )}
@@ -55,7 +55,7 @@ export function ScoreGauge({ score, label, size = 72 }: ScoreGaugeProps) {
           dominantBaseline="middle"
           fontSize={size * 0.24}
           fontWeight="700"
-          fill="white"
+          fill="#1e293b"
         >
           {score}
         </text>

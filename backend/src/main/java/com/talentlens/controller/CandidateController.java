@@ -43,7 +43,6 @@ public class CandidateController {
             String rawText = cvParser.extractText(bytes, filename);
             Map<String, Object> parsed = cvParser.parseCv(rawText);
             int credScore = scoring.calculateCredibility(parsed, cvParser);
-            List<Double> embedding = gemini.embed(rawText);
 
             Candidate c = new Candidate();
             c.setName((String) parsed.getOrDefault("name", "Unknown"));
@@ -52,7 +51,6 @@ public class CandidateController {
             c.setRawText(rawText);
             c.setParsed(mapper.writeValueAsString(parsed));
             c.setCredibilityScore(credScore);
-            c.setEmbedding(mapper.writeValueAsString(embedding));
 
             candidateRepo.save(c);
             return ResponseEntity.ok(buildCandidateMap(c, false, List.of()));

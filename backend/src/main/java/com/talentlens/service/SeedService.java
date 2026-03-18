@@ -62,34 +62,32 @@ public class SeedService implements CommandLineRunner {
             "5+ years experience, strong TypeScript and Python skills, cloud infrastructure (AWS or GCP), " +
             "and ability to mentor junior engineers. Bonus: ML/AI integrations.";
 
-        List<Double> jobEmb = gemini.embed(jobDesc);
         Job job = new Job();
         job.setTitle(jobTitle);
         job.setDescription(jobDesc);
-        job.setEmbedding(mapper.writeValueAsString(jobEmb));
         jobRepo.save(job);
 
         // ── Candidates ────────────────────────────────────────────────────────
-        record Demo(String name, String email, String source, int cred, String rawText) {}
+        record Demo(String name, String email, String source, int cred, int match, String rawText) {}
 
         List<Demo> demos = List.of(
-            new Demo("Alice Chen", "alice.chen@email.com", "linkedin", 88,
+            new Demo("Alice Chen", "alice.chen@email.com", "linkedin", 88, 85,
                 "Alice Chen | Tech Lead | alice.chen@email.com | +1-555-0101\nSkills: React, TypeScript, Python, FastAPI, PostgreSQL, AWS, Docker, GraphQL, Redis, Kubernetes\nExperience:\n2021-Present: Tech Lead at PayFast (36 months)\n2019-2021: Senior Engineer at DataFlow Inc (24 months)\n2017-2019: Software Engineer at WebCraft (24 months)\nEducation: B.Sc Computer Science, MIT 2016\nLanguages: English, Mandarin"),
-            new Demo("Marcus Okonkwo", "marcus.ok@protonmail.com", "startupjobs", 72,
+            new Demo("Marcus Okonkwo", "marcus.ok@protonmail.com", "startupjobs", 72, 68,
                 "Marcus Okonkwo | Backend Engineer | marcus.ok@protonmail.com | +44-7700-900123\nSkills: Vue.js, Node.js, Python, Django, MySQL, GCP, Terraform\nExperience:\n2020-Present: Backend Engineer at CloudMesh (48 months)\n2018-2020: Full-Stack Developer at AppFactory (24 months)\nEducation: B.Eng Software Engineering, University of Lagos 2018"),
-            new Demo("Sofia Andersen", "sofia.andersen@outlook.com", "email", 82,
+            new Demo("Sofia Andersen", "sofia.andersen@outlook.com", "email", 82, 78,
                 "Sofia Andersen | Full-Stack Engineer | sofia.andersen@outlook.com | +45-20-123456\nSkills: React, Next.js, TypeScript, Go, PostgreSQL, Kubernetes, Prometheus\nExperience:\n2022-Present: Senior Engineer at ScaleNord (24 months)\n2019-2022: Frontend Lead at DesignTech (36 months)\nEducation: M.Sc Computer Science, Copenhagen University 2017\nLanguages: English, Danish, Swedish"),
-            new Demo("Raj Patel", "raj.patel.dev@gmail.com", "manual", 61,
+            new Demo("Raj Patel", "raj.patel.dev@gmail.com", "manual", 61, 63,
                 "Raj Patel | Full-Stack Developer | raj.patel.dev@gmail.com | +91-98765-43210\nSkills: React, Angular, Python, Flask, MongoDB, Azure\nExperience:\n2023-Present: Developer at TechSolve (12 months)\n2021-2022: Frontend Developer at PixelWorks (14 months)\n2019-2021: Junior Developer at CodeBase (18 months)\nGaps: 6 months gap 2022-2023\nEducation: B.Tech IT, IIT Bombay 2019"),
-            new Demo("Elena Volkov", "elena.volkov@techmail.eu", "linkedin", 79,
+            new Demo("Elena Volkov", "elena.volkov@techmail.eu", "linkedin", 79, 82,
                 "Elena Volkov | ML Engineer | elena.volkov@techmail.eu | +7-916-555-0199\nSkills: React, TypeScript, Python, FastAPI, Redis, AWS, Machine Learning, PyTorch\nExperience:\n2022-Present: ML Engineer at AILabs (24 months)\n2020-2022: Data Scientist at Analytics Corp (24 months)\nEducation: M.Sc Machine Learning, Moscow State University 2019\nLanguages: English, Russian, German"),
-            new Demo("Tom Bradley", "tombradley@icloud.com", "startupjobs", 42,
+            new Demo("Tom Bradley", "tombradley@icloud.com", "startupjobs", 42, 38,
                 "Tom Bradley | Web Developer | tombradley@icloud.com | +1-555-0187\nSkills: JavaScript, PHP, WordPress, MySQL, Bootstrap\nExperience:\n2023-Present: Freelance Developer (12 months)\n2022-2023: Web Developer at AgencyX (8 months)\n2021-2022: Junior Developer at LocalBiz (10 months)\nRed flags: Very short tenures, vague descriptions\nEducation: Associate Degree Web Design, Community College 2021"),
-            new Demo("Amara Diallo", "amara.diallo@gmail.com", "email", 85,
+            new Demo("Amara Diallo", "amara.diallo@gmail.com", "email", 85, 88,
                 "Amara Diallo | Senior Software Engineer | amara.diallo@gmail.com | +33-6-12-34-56-78\nSkills: React, TypeScript, Python, FastAPI, PostgreSQL, Docker, AWS, GraphQL\nExperience:\n2021-Present: Senior Engineer at TechParis (36 months)\n2019-2021: Software Engineer at StartupFrance (24 months)\n2018-2019: Junior Developer at WebAgence (12 months)\nEducation: M.Eng Computer Science, Ecole Polytechnique 2018\nLanguages: English, French, Arabic"),
-            new Demo("James Kim", "james.kim.eng@gmail.com", "linkedin", 95,
+            new Demo("James Kim", "james.kim.eng@gmail.com", "linkedin", 95, 93,
                 "James Kim | Staff Engineer | james.kim.eng@gmail.com | +1-415-555-0142\nSkills: React, TypeScript, Rust, Python, PostgreSQL, Kubernetes, AWS, Terraform, Go\nExperience:\n2020-Present: Staff Engineer at TechGiant Corp (48 months)\n2017-2020: Senior Software Engineer at CloudScale (36 months)\n2014-2017: Software Engineer at InnoSystems (36 months)\n2012-2014: Junior Engineer at DevShop (24 months)\nEducation: B.Sc Computer Science, Stanford University 2012\nLanguages: English, Korean"),
-            new Demo("Priya Sharma", "priya.sharma.code@gmail.com", "manual", 67,
+            new Demo("Priya Sharma", "priya.sharma.code@gmail.com", "manual", 67, 65,
                 "Priya Sharma | Frontend Developer | priya.sharma.code@gmail.com | +91-87654-32109\nSkills: React, Vue.js, Python, Django, PostgreSQL, AWS\nExperience:\n2022-Present: Frontend Developer at SaaSCompany (24 months)\n2020-2022: Junior Frontend at DesignStudio (20 months)\nEducation: B.Sc Computer Science, University of Delhi 2019\nLanguages: English, Hindi, Tamil")
         );
 
@@ -98,8 +96,7 @@ public class SeedService implements CommandLineRunner {
 
         for (Demo d : demos) {
             log.info("  Seeding {}...", d.name());
-            List<Double> emb = gemini.embed(d.rawText());
-            int matchSc = scoring.matchScore(emb, jobEmb);
+            int matchSc = d.match();
 
             Map<String, Object> parsed = Map.of(
                 "name", d.name(), "email", d.email(), "phone", "N/A",
@@ -118,7 +115,6 @@ public class SeedService implements CommandLineRunner {
             c.setRawText(d.rawText());
             c.setParsed(mapper.writeValueAsString(parsed));
             c.setCredibilityScore(d.cred());
-            c.setEmbedding(mapper.writeValueAsString(emb));
             candidateRepo.save(c);
 
             int overall = scoring.calculateOverallScore(matchSc, d.cred(), 0);

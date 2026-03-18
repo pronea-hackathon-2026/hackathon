@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [activeJobId, setActiveJobId] = useState<string>('')
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
+  const [jobsLoading, setJobsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Candidate[] | null>(null)
   const [searching, setSearching] = useState(false)
@@ -36,6 +37,8 @@ export default function Dashboard() {
       }
     } catch (e) {
       console.error(e)
+    } finally {
+      setJobsLoading(false)
     }
   }, [activeJobId])
 
@@ -228,7 +231,9 @@ export default function Dashboard() {
 
       {/* Kanban board */}
       <div className="flex-1 overflow-x-auto p-6">
-        {jobs.length === 0 ? (
+        {jobsLoading ? (
+          <KanbanBoard applications={[]} onStatusChange={handleStatusChange} loading={true} />
+        ) : jobs.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground">
             <Briefcase size={48} className="opacity-30" />
             <p className="text-lg">No jobs yet</p>

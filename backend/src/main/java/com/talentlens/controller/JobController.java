@@ -39,15 +39,13 @@ public class JobController {
         String title = body.get("title");
         String description = body.getOrDefault("description", "");
 
-        List<Double> embedding = gemini.embed(description);
         Job job = new Job();
         job.setTitle(title);
         job.setDescription(description);
-        job.setEmbedding(mapper.writeValueAsString(embedding));
         jobRepo.save(job);
 
-        // Re-score all existing candidates against this new job
-        rescoreAll(job, embedding);
+        // Create inbox applications for all existing candidates (match score = 0 until re-scored)
+        rescoreAll(job, null);
 
         return buildJobMap(job);
     }

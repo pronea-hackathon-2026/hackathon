@@ -1,4 +1,3 @@
-# hackathon
 # Tým ClusterBusters
 Pronea Hackathon 2026
 

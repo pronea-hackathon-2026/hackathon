@@ -3,7 +3,7 @@ set -e
 
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 BACKEND_DIR="$PROJECT_ROOT/backend"
-VENV="$BACKEND_DIR/.venv"
+JAR="$BACKEND_DIR/target/talentlens-0.1.0.jar"
 
 # ─── Colours ──────────────────────────────────────────────────────────────────
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
@@ -11,61 +11,64 @@ info()  { echo -e "${GREEN}[talentlens]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[talentlens]${NC} $*"; }
 error() { echo -e "${RED}[talentlens]${NC} $*" >&2; }
 
-# ─── Checks ───────────────────────────────────────────────────────────────────
-if [ ! -f "$BACKEND_DIR/.env" ]; then
-  error ".env not found in backend/. Copy backend/.env.example and fill in your keys."
+# ─── Check Java ───────────────────────────────────────────────────────────────
+if ! command -v java &>/dev/null; then
+  error "Java not found. Install Java 17+: https://adoptium.net"
   exit 1
 fi
 
-if [ ! -d "$VENV" ]; then
-  warn "Virtual environment not found. Creating..."
-  python3 -m venv "$VENV"
-  source "$VENV/bin/activate"
-  pip install -r "$BACKEND_DIR/requirements.txt" -q
-else
-  source "$VENV/bin/activate"
-fi
-
-# ─── Supabase ─────────────────────────────────────────────────────────────────
-if command -v supabase &>/dev/null; then
-  info "Starting Supabase local stack..."
-  cd "$PROJECT_ROOT"
-  supabase start
-  SUPABASE_STATUS="local"
-else
-  # Cloud Supabase — verify the URL is reachable
-  SUPABASE_URL=$(grep -E '^SUPABASE_URL=' "$BACKEND_DIR/.env" | cut -d'=' -f2-)
-  if [ -z "$SUPABASE_URL" ] || [ "$SUPABASE_URL" = "https://your-project.supabase.co" ]; then
-    warn "SUPABASE_URL is not configured in backend/.env"
-  else
-    info "Using cloud Supabase: $SUPABASE_URL"
+# ─── Check Gemini key ─────────────────────────────────────────────────────────
+if [ -z "$GEMINI_API_KEY" ]; then
+  if [ -f "$BACKEND_DIR/.env" ]; then
+    export $(grep -v '^#' "$BACKEND_DIR/.env" | xargs)
   fi
-  SUPABASE_STATUS="cloud"
 fi
 
-# ─── Backend ──────────────────────────────────────────────────────────────────
-info "Starting FastAPI backend on http://localhost:8000 ..."
+if [ -z "$GEMINI_API_KEY" ]; then
+  error "GEMINI_API_KEY is not set. Add it to backend/.env or export it."
+  exit 1
+fi
+
+# ─── Find Maven ───────────────────────────────────────────────────────────────
+MVN=""
+if [ -f "$BACKEND_DIR/mvnw" ]; then
+  MVN="$BACKEND_DIR/mvnw"
+elif command -v mvn &>/dev/null; then
+  MVN="mvn"
+else
+  error "Maven not found. Install it with:  brew install maven"
+  error "Or run: brew install maven && ./start.sh"
+  exit 1
+fi
+
+# ─── Build if needed ──────────────────────────────────────────────────────────
+if [ ! -f "$JAR" ]; then
+  info "Building backend (first run — takes ~60 seconds)..."
+  cd "$BACKEND_DIR"
+  $MVN -q package -DskipTests
+  info "Build complete."
+fi
+
+# ─── Start backend ────────────────────────────────────────────────────────────
+info "Starting Spring Boot backend on http://localhost:8000 ..."
+info "(Database: H2 file stored in backend/data/ — no external DB needed)"
 cd "$BACKEND_DIR"
-uvicorn main:app --reload --port 8000 &
+java -jar "$JAR" &
 BACKEND_PID=$!
 
-# ─── Trap for clean shutdown ───────────────────────────────────────────────────
+# ─── Clean shutdown ───────────────────────────────────────────────────────────
 cleanup() {
   info "Shutting down..."
   kill "$BACKEND_PID" 2>/dev/null || true
-  if [ "$SUPABASE_STATUS" = "local" ] && command -v supabase &>/dev/null; then
-    cd "$PROJECT_ROOT" && supabase stop
-  fi
 }
 trap cleanup INT TERM
 
 info ""
-info "  Backend : http://localhost:8000"
-info "  API docs: http://localhost:8000/docs"
-if [ "$SUPABASE_STATUS" = "local" ]; then
-  info "  Supabase: http://localhost:54323 (Studio)"
-fi
+info "  Backend:  http://localhost:8000"
+info "  API docs: http://localhost:8000/swagger-ui.html"
+info "  DB UI:    http://localhost:8000/h2-console  (JDBC: jdbc:h2:file:./data/talentlens)"
 info ""
+info "Demo data is seeded automatically on first startup."
 info "Press Ctrl+C to stop."
 
 wait "$BACKEND_PID"

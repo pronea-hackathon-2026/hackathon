@@ -32,7 +32,7 @@ public class GeminiService {
             "generationConfig", Map.of("temperature", 0.1, "maxOutputTokens", 4096)
         );
 
-        String url = baseUrl + "/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+        String url = baseUrl + "/models/gemini-2.5-flash:generateContent?key=" + apiKey;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 

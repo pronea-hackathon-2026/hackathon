@@ -4,8 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class ScoringService {
@@ -64,6 +68,44 @@ public class ScoringService {
         score -= 5 * redFlags.size();
 
         return Math.max(0, Math.min(100, score));
+    }
+
+    // ── AI match score via Gemini text generation ─────────────────────────────
+
+    public int aiMatchScore(String jobTitle, String jobDescription, String candidateRawText, GeminiService gemini) {
+        if (candidateRawText == null || candidateRawText.isBlank()) return 0;
+        String prompt = "Rate how well this candidate matches the job on a scale of 0-100. Return ONLY a single integer, nothing else.\n\n" +
+            "Job Title: " + jobTitle + "\n" +
+            "Job Description: " + (jobDescription != null ? jobDescription : "") + "\n\n" +
+            "Candidate CV:\n" + (candidateRawText.length() > 2000 ? candidateRawText.substring(0, 2000) : candidateRawText);
+        String raw = gemini.generate("You are a recruiting expert. Return only a number.", prompt).strip();
+        // Extract first number from response
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d+").matcher(raw);
+        if (m.find()) return Math.min(100, Math.max(0, Integer.parseInt(m.group())));
+        return 0;
+    }
+
+    // ── Keyword-based match (fallback when embeddings unavailable) ────────────
+
+    public int keywordMatchScore(String jobTitle, String jobDescription, String candidateRawText) {
+        if ((jobTitle == null || jobTitle.isBlank()) && (jobDescription == null || jobDescription.isBlank())) return 0;
+        if (candidateRawText == null || candidateRawText.isBlank()) return 0;
+
+        Set<String> stopWords = Set.of("and","the","for","with","you","are","this","that","have","will",
+            "from","your","our","not","can","but","all","any","its","been","they","more","also","into");
+
+        Function<String, Set<String>> tokenize = text ->
+            Arrays.stream(text.toLowerCase().split("[^a-z0-9]+"))
+                .filter(w -> w.length() > 3 && !stopWords.contains(w))
+                .collect(Collectors.toSet());
+
+        Set<String> jobWords = tokenize.apply((jobTitle != null ? jobTitle : "") + " " + (jobDescription != null ? jobDescription : ""));
+        Set<String> candWords = tokenize.apply(candidateRawText);
+
+        if (jobWords.isEmpty()) return 0;
+        long matches = jobWords.stream().filter(candWords::contains).count();
+        // Scale: full overlap = 100, but cap reasonably since CVs have more unique words
+        return (int) Math.min(100, Math.round((double) matches / jobWords.size() * 150));
     }
 
     // ── Cosine similarity ──────────────────────────────────────────────────────

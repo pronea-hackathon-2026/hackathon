@@ -58,6 +58,14 @@ public class JobController {
             .toList();
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable UUID id) {
+        if (!jobRepo.existsById(id)) return ResponseEntity.notFound().build();
+        appRepo.deleteByJobId(id);
+        jobRepo.deleteById(id);
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
     @PostMapping("/{id}/rescore")
     public ResponseEntity<?> rescore(@PathVariable UUID id) {
         return jobRepo.findById(id).map(job -> {
@@ -73,8 +81,17 @@ public class JobController {
 
     private void rescoreAll(Job job, List<Double> jobEmbedding) {
         for (Candidate cand : candidateRepo.findAll()) {
-            List<Double> candEmb = scoring.parseEmbedding(cand.getEmbedding());
-            int matchSc = scoring.matchScore(candEmb, jobEmbedding);
+            int matchSc;
+            if (jobEmbedding != null) {
+                List<Double> candEmb = scoring.parseEmbedding(cand.getEmbedding());
+                matchSc = scoring.matchScore(candEmb, jobEmbedding);
+            } else {
+                try {
+                    matchSc = scoring.aiMatchScore(job.getTitle(), job.getDescription(), cand.getRawText(), gemini);
+                } catch (Exception e) {
+                    matchSc = scoring.keywordMatchScore(job.getTitle(), job.getDescription(), cand.getRawText());
+                }
+            }
             int credSc = cand.getCredibilityScore() != null ? cand.getCredibilityScore() : 0;
 
             Optional<JobApplication> existing = appRepo.findByCandidateIdAndJobId(cand.getId(), job.getId());

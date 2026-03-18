@@ -9,12 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import KanbanBoard from '@/components/KanbanBoard'
 import { api, type Application, type Job, type Candidate } from '@/lib/api'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [jobs, setJobs] = useState<Job[]>([])
-  const [activeJobId, setActiveJobId] = useState<string>('')
+  const [activeJobId, setActiveJobId] = useState<string>(searchParams.get('job') ?? '')
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
   const [jobsLoading, setJobsLoading] = useState(true)

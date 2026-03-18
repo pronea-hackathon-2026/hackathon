@@ -173,7 +173,7 @@ export default function CandidateDetail() {
                 </div>
                 <ul className="space-y-1">
                   {parsed.gaps.map((gap, i) => (
-                    <li key={i} className="text-sm text-amber-400/80">
+                    <li key={i} className="text-sm text-amber-700">
                       {gap.start_date} → {gap.end_date} ({gap.duration_months} months)
                     </li>
                   ))}
@@ -367,7 +367,7 @@ function InterviewAnalysisPanel({ app }: { app: Application }) {
             <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-wide">Strengths</p>
             <ul className="space-y-1">
               {a.strengths.map((s, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-emerald-400">
+                <li key={i} className="flex items-start gap-2 text-sm text-emerald-600">
                   <CheckCircle size={12} className="mt-0.5 shrink-0" />
                   <span>{s}</span>
                 </li>
@@ -378,7 +378,7 @@ function InterviewAnalysisPanel({ app }: { app: Application }) {
             <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-wide">Concerns</p>
             <ul className="space-y-1">
               {a.concerns.map((c, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-amber-400">
+                <li key={i} className="flex items-start gap-2 text-sm text-amber-600">
                   <AlertTriangle size={12} className="mt-0.5 shrink-0" />
                   <span>{c}</span>
                 </li>

@@ -223,7 +223,7 @@ export default function VideoReview() {
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Strengths</p>
                       <ul className="space-y-1">
                         {analysis.strengths.map((s, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-emerald-400">
+                          <li key={i} className="flex items-start gap-2 text-sm text-emerald-600">
                             <CheckCircle size={12} className="mt-0.5 shrink-0" />
                             {s}
                           </li>
@@ -234,7 +234,7 @@ export default function VideoReview() {
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Concerns</p>
                       <ul className="space-y-1">
                         {analysis.concerns.map((c, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-amber-400">
+                          <li key={i} className="flex items-start gap-2 text-sm text-amber-600">
                             <AlertTriangle size={12} className="mt-0.5 shrink-0" />
                             {c}
                           </li>

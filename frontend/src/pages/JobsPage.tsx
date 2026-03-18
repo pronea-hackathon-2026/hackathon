@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Briefcase, Plus } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Briefcase, Plus, LayoutDashboard, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,12 +10,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { api, type Job } from '@/lib/api'
 
 export default function JobsPage() {
+  const navigate = useNavigate()
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [showNew, setShowNew] = useState(false)
   const [title, setTitle] = useState('')
   const [desc, setDesc] = useState('')
   const [creating, setCreating] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   useEffect(() => {
     api.jobs.list().then(setJobs).catch(console.error).finally(() => setLoading(false))
@@ -33,6 +36,19 @@ export default function JobsPage() {
       console.error(e)
     } finally {
       setCreating(false)
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this job and all its applications?')) return
+    setDeleting(id)
+    try {
+      await api.jobs.delete(id)
+      setJobs((prev) => prev.filter((j) => j.id !== id))
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -78,6 +94,7 @@ export default function JobsPage() {
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Title</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Description</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Created</th>
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody>
@@ -96,6 +113,24 @@ export default function JobsPage() {
                     </td>
                     <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                       {j.created_at ? formatDate(j.created_at) : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" variant="outline" onClick={() => navigate(`/?job=${j.id}`)}>
+                          <LayoutDashboard size={13} />
+                          Dashboard
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-500 hover:text-red-600 hover:border-red-300"
+                          disabled={deleting === j.id}
+                          onClick={() => handleDelete(j.id)}
+                        >
+                          <Trash2 size={13} />
+                          {deleting === j.id ? 'Deleting…' : 'Delete'}
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

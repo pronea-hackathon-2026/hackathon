@@ -38,6 +38,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ title, description }),
       }),
+    delete: (id: string) => req(`/jobs/${id}`, { method: 'DELETE' }),
     rescore: (id: string) => req(`/jobs/${id}/rescore`, { method: 'POST' }),
   },
 

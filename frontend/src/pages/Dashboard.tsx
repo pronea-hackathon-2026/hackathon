@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Search, Plus, Upload, X, Briefcase } from 'lucide-react'
+import { Search, Plus, Upload, X, Briefcase, Link, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -28,6 +28,15 @@ export default function Dashboard() {
   const [newJobDesc, setNewJobDesc] = useState('')
   const [creatingJob, setCreatingJob] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+
+  const handleCopyLink = () => {
+    if (!activeJobId) return
+    const applyUrl = `${window.location.origin}/apply/${activeJobId}`
+    navigator.clipboard.writeText(applyUrl)
+    setLinkCopied(true)
+    setTimeout(() => setLinkCopied(false), 2000)
+  }
 
   const loadJobs = useCallback(async () => {
     try {
@@ -138,16 +147,29 @@ export default function Dashboard() {
         <div className="flex items-center gap-2 flex-1">
           <Briefcase size={16} className="text-muted-foreground" />
           {jobs.length > 0 ? (
-            <Select value={activeJobId} onValueChange={setActiveJobId}>
-              <SelectTrigger className="w-64">
-                <SelectValue placeholder="Select a job" />
-              </SelectTrigger>
-              <SelectContent>
-                {jobs.map((j) => (
-                  <SelectItem key={j.id} value={j.id}>{j.title}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <>
+              <Select value={activeJobId} onValueChange={setActiveJobId}>
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Select a job" />
+                </SelectTrigger>
+                <SelectContent>
+                  {jobs.map((j) => (
+                    <SelectItem key={j.id} value={j.id}>{j.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {activeJobId && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCopyLink}
+                  className={linkCopied ? 'text-green-500' : 'text-muted-foreground hover:text-foreground'}
+                  title="Copy application link"
+                >
+                  {linkCopied ? <Check size={16} /> : <Link size={16} />}
+                </Button>
+              )}
+            </>
           ) : (
             <span className="text-sm text-muted-foreground">No jobs yet</span>
           )}

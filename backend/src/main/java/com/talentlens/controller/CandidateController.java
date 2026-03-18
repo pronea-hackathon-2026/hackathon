@@ -35,6 +35,47 @@ public class CandidateController {
         this.scoring = scoring;
     }
 
+    @PostMapping
+    public ResponseEntity<?> create(@RequestBody Map<String, Object> body) {
+        try {
+            String name = (String) body.getOrDefault("name", "Unknown");
+            String email = (String) body.get("email");
+
+            Candidate c = new Candidate();
+            c.setName(name);
+            c.setEmail(email);
+            c.setSource("application");
+            c.setCredibilityScore(0);
+
+            candidateRepo.save(c);
+            return ResponseEntity.ok(buildCandidateMap(c, false, List.of()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping(value = "/{id}/cv", consumes = "multipart/form-data")
+    public ResponseEntity<?> uploadCv(@PathVariable UUID id, @RequestParam("file") MultipartFile file) {
+        return candidateRepo.findById(id).map(c -> {
+            try {
+                byte[] bytes = file.getBytes();
+                String filename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "upload";
+                String rawText = cvParser.extractText(bytes, filename);
+                Map<String, Object> parsed = cvParser.parseCv(rawText);
+                int credScore = scoring.calculateCredibility(parsed, cvParser);
+
+                c.setRawText(rawText);
+                c.setParsed(mapper.writeValueAsString(parsed));
+                c.setCredibilityScore(credScore);
+
+                candidateRepo.save(c);
+                return ResponseEntity.ok(buildCandidateMap(c, false, List.of()));
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            }
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
     public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) {
         try {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAIProgress } from '@/lib/ai-progress'
-import { Briefcase, Plus, LayoutDashboard, Trash2, X, ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react'
+import { Briefcase, Plus, LayoutDashboard, Trash2, X, ChevronRight, ChevronLeft, CheckCircle2, Copy, Check, Link } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import { api, type Job, type JobRequirements } from '@/lib/api'
+import { api, type Job, type JobRequirements, type ApplicationQuestion } from '@/lib/api'
 
 // ─── Tag Input ────────────────────────────────────────────────────────────────
 
@@ -259,7 +259,7 @@ function ResponsibilitiesInput({
 
 // ─── Steps ────────────────────────────────────────────────────────────────────
 
-const STEPS = ['Basics', 'Skills', 'Role Details', 'AI Guidance']
+const STEPS = ['Basics', 'Skills', 'Role Details', 'Application Form', 'AI Guidance']
 
 function defaultRequirements(): JobRequirements {
   return {
@@ -283,7 +283,109 @@ function defaultRequirements(): JobRequirements {
       education: 10,
       career_trajectory: 10,
     },
+    application_questions: [],
   }
+}
+
+// ─── Question Builder ─────────────────────────────────────────────────────────
+
+function QuestionBuilder({
+  questions,
+  onChange,
+}: {
+  questions: ApplicationQuestion[]
+  onChange: (questions: ApplicationQuestion[]) => void
+}) {
+  const [newQuestion, setNewQuestion] = useState('')
+  const [newType, setNewType] = useState<'text' | 'choice'>('text')
+  const [newOptions, setNewOptions] = useState('')
+
+  function addQuestion() {
+    if (!newQuestion.trim()) return
+    const q: ApplicationQuestion = {
+      id: crypto.randomUUID(),
+      type: newType,
+      question: newQuestion.trim(),
+      required: true,
+      ...(newType === 'choice' && newOptions.trim()
+        ? { options: newOptions.split(',').map(o => o.trim()).filter(Boolean) }
+        : {}),
+    }
+    onChange([...questions, q])
+    setNewQuestion('')
+    setNewOptions('')
+  }
+
+  function removeQuestion(id: string) {
+    onChange(questions.filter(q => q.id !== id))
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Existing questions */}
+      {questions.length > 0 && (
+        <div className="space-y-2">
+          {questions.map((q, i) => (
+            <div key={q.id} className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+              <span className="text-xs text-muted-foreground mt-0.5">{i + 1}.</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{q.question}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="text-xs">
+                    {q.type === 'text' ? 'Text answer' : 'Multiple choice'}
+                  </Badge>
+                  {q.options && (
+                    <span className="text-xs text-muted-foreground">
+                      {q.options.join(', ')}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => removeQuestion(q.id)}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add new question */}
+      <div className="space-y-3 p-3 rounded-lg border border-dashed border-border">
+        <div className="flex gap-2">
+          <select
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            value={newType}
+            onChange={(e) => setNewType(e.target.value as 'text' | 'choice')}
+          >
+            <option value="text">Text answer</option>
+            <option value="choice">Multiple choice</option>
+          </select>
+          <Input
+            placeholder="Enter your question..."
+            value={newQuestion}
+            onChange={(e) => setNewQuestion(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addQuestion())}
+            className="flex-1"
+          />
+        </div>
+        {newType === 'choice' && (
+          <Input
+            placeholder="Options (comma separated): Yes, No, Maybe"
+            value={newOptions}
+            onChange={(e) => setNewOptions(e.target.value)}
+          />
+        )}
+        <Button type="button" variant="outline" size="sm" onClick={addQuestion} disabled={!newQuestion.trim()}>
+          <Plus size={14} />
+          Add Question
+        </Button>
+      </div>
+    </div>
+  )
 }
 
 // ─── Create Job Dialog ────────────────────────────────────────────────────────
@@ -547,8 +649,24 @@ function CreateJobDialog({
             </>
           )}
 
-          {/* Step 3: AI Guidance */}
+          {/* Step 3: Application Form */}
           {step === 3 && (
+            <>
+              <div className="space-y-2">
+                <Label>Application Questions</Label>
+                <p className="text-xs text-muted-foreground">
+                  Add custom questions that candidates will answer when applying. These appear after name, email, and resume upload.
+                </p>
+                <QuestionBuilder
+                  questions={req.application_questions || []}
+                  onChange={(v) => updateReq('application_questions', v)}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Step 4: AI Guidance */}
+          {step === 4 && (
             <>
               <div className="space-y-2">
                 <Label>Deal-breakers</Label>
@@ -612,6 +730,68 @@ function CreateJobDialog({
   )
 }
 
+// ─── Job Created Success Dialog ───────────────────────────────────────────────
+
+function JobCreatedDialog({
+  open,
+  onClose,
+  job,
+}: {
+  open: boolean
+  onClose: () => void
+  job: Job | null
+}) {
+  const [copied, setCopied] = useState(false)
+
+  if (!job) return null
+
+  const applyUrl = `${window.location.origin}/apply/${job.id}`
+
+  function handleCopy() {
+    navigator.clipboard.writeText(applyUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <CheckCircle2 className="text-green-500" size={20} />
+            Job Created!
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <p className="text-sm text-muted-foreground">
+            <strong className="text-foreground">{job.title}</strong> has been created successfully. Share this link with candidates so they can apply:
+          </p>
+
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-muted border border-border">
+            <Link size={16} className="text-muted-foreground shrink-0" />
+            <code className="flex-1 text-sm break-all">{applyUrl}</code>
+          </div>
+
+          <Button onClick={handleCopy} className="w-full" variant={copied ? "outline" : "default"}>
+            {copied ? (
+              <>
+                <Check size={16} className="text-green-500" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Copy size={16} />
+                Copy Link
+              </>
+            )}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function JobsPage() {
@@ -620,6 +800,15 @@ export default function JobsPage() {
   const [loading, setLoading] = useState(true)
   const [showNew, setShowNew] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [createdJob, setCreatedJob] = useState<Job | null>(null)
+  const [copiedJobId, setCopiedJobId] = useState<string | null>(null)
+
+  function handleCopyLink(jobId: string) {
+    const applyUrl = `${window.location.origin}/apply/${jobId}`
+    navigator.clipboard.writeText(applyUrl)
+    setCopiedJobId(jobId)
+    setTimeout(() => setCopiedJobId(null), 2000)
+  }
 
   useEffect(() => {
     api.jobs.list().then(setJobs).catch(console.error).finally(() => setLoading(false))
@@ -738,6 +927,15 @@ export default function JobsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleCopyLink(j.id)}
+                            className={copiedJobId === j.id ? 'text-green-500 border-green-500' : ''}
+                          >
+                            {copiedJobId === j.id ? <Check size={13} /> : <Copy size={13} />}
+                            {copiedJobId === j.id ? 'Copied!' : 'Copy Link'}
+                          </Button>
                           <Button size="sm" variant="outline" onClick={() => navigate(`/?job=${j.id}`)}>
                             <LayoutDashboard size={13} />
                             Dashboard
@@ -768,7 +966,14 @@ export default function JobsPage() {
         onClose={() => setShowNew(false)}
         onCreated={(job) => {
           setJobs((prev) => [job, ...prev])
+          setCreatedJob(job)
         }}
+      />
+
+      <JobCreatedDialog
+        open={createdJob !== null}
+        onClose={() => setCreatedJob(null)}
+        job={createdJob}
       />
     </div>
   )

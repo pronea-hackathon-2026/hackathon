@@ -61,6 +61,13 @@ public class JobController {
             .toList();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> get(@PathVariable UUID id) {
+        return jobRepo.findById(id)
+            .map(job -> ResponseEntity.ok(buildJobMap(job)))
+            .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable UUID id) {
         if (!jobRepo.existsById(id)) return ResponseEntity.notFound().build();

@@ -22,6 +22,18 @@ export const api = {
       if (!res.ok) throw new Error(await res.text())
       return res.json()
     },
+    create: (name: string, email: string) =>
+      req<Candidate>('/candidates', {
+        method: 'POST',
+        body: JSON.stringify({ name, email }),
+      }),
+    uploadCV: async (candidateId: string, file: File) => {
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch(`${BASE}/candidates/${candidateId}/cv`, { method: 'POST', body: form })
+      if (!res.ok) throw new Error(await res.text())
+      return res.json()
+    },
     list: () => req<Candidate[]>('/candidates'),
     get: (id: string) => req<Candidate>(`/candidates/${id}`),
     search: (query: string) =>
@@ -33,6 +45,7 @@ export const api = {
 
   jobs: {
     list: () => req<Job[]>('/jobs'),
+    get: (id: string) => req<Job>(`/jobs/${id}`),
     create: (title: string, description: string, requirements?: JobRequirements) =>
       req<Job>('/jobs', {
         method: 'POST',
@@ -103,6 +116,14 @@ export interface ParsedCV {
   red_flags: string[]
 }
 
+export interface ApplicationQuestion {
+  id: string
+  type: 'text' | 'choice'
+  question: string
+  options?: string[] // for choice type
+  required: boolean
+}
+
 export interface JobRequirements {
   required_skills: string[]
   nice_to_have_skills: string[]
@@ -124,6 +145,7 @@ export interface JobRequirements {
     education: number
     career_trajectory: number
   }
+  application_questions?: ApplicationQuestion[]
 }
 
 export interface Job {

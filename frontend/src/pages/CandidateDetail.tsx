@@ -19,11 +19,11 @@ function initials(name: string) {
 function ScoreBar({ label, score, color = 'bg-primary' }: { label: string; score: number; color?: string }) {
   return (
     <div>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-muted-foreground">{label}</span>
-        <span className="text-xs font-bold tabular-nums">{score}%</span>
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">{label}</span>
+        <span className="text-sm font-semibold tabular-nums text-foreground">{score}%</span>
       </div>
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
         <motion.div
           className={`h-full rounded-full ${color}`}
           initial={{ width: 0 }}
@@ -111,29 +111,20 @@ export default function CandidateDetail() {
   return (
     <div className="flex flex-col h-full">
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-border bg-background/50 backdrop-blur sticky top-0 z-10">
+      <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-background/90 px-6 py-3 backdrop-blur">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
           <ArrowLeft size={16} />
         </Button>
 
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-sm shrink-0">
-            {initials(candidate.name)}
-          </div>
-          <div className="min-w-0">
-            <p className="font-semibold text-base leading-tight">{candidate.name}</p>
-            <div className="flex items-center gap-2 mt-0.5">
-              <SourceBadge source={candidate.source} />
-              {app && <StatusBadge status={app.status} />}
-            </div>
-          </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">Candidate profile</p>
         </div>
 
         {applications.length > 1 && (
           <select
             value={selectedAppId ?? ''}
             onChange={(e) => { setSelectedAppId(e.target.value); setQuestions([]) }}
-            className="text-sm bg-transparent border border-border rounded-md px-2 py-1.5 outline-none cursor-pointer shrink-0 max-w-[180px]"
+            className="max-w-[220px] shrink-0 cursor-pointer rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
           >
             {applications.map((a) => (
               <option key={a.id} value={a.id}>{jobTitle(a)}</option>
@@ -164,28 +155,32 @@ export default function CandidateDetail() {
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-6 max-w-3xl mx-auto space-y-6">
+        <div className="mx-auto max-w-5xl space-y-5 p-6">
 
           {/* Identity */}
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-lg shrink-0">
+          <div className="flex items-start gap-4 rounded-xl border border-border bg-background p-5">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-lg">
               {initials(candidate.name)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-xl leading-tight">{candidate.name}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-3xl font-semibold tracking-[-0.03em] text-foreground">{candidate.name}</p>
+                <SourceBadge source={candidate.source} />
+                {app && <StatusBadge status={app.status} />}
+              </div>
               {parsed?.experience?.[0] && (
-                <p className="text-sm text-muted-foreground mt-0.5">
+                <p className="mt-1 text-lg text-muted-foreground">
                   {parsed.experience[0].role} · {parsed.experience[0].company}
                 </p>
               )}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
+              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
                 {parsed?.email && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Mail size={11} />{parsed.email}
                   </span>
                 )}
                 {parsed?.phone && parsed.phone !== 'N/A' && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Phone size={11} />{parsed.phone}
                   </span>
                 )}
@@ -194,7 +189,7 @@ export default function CandidateDetail() {
                     href={parsed.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-primary flex items-center gap-1 hover:underline"
+                    className="flex items-center gap-1.5 text-sm text-primary hover:underline"
                   >
                     <Linkedin size={11} />LinkedIn<ExternalLink size={10} />
                   </a>
@@ -204,27 +199,27 @@ export default function CandidateDetail() {
           </div>
 
           {/* Two-column content */}
-          <div className="flex gap-8">
+          <div className="grid grid-cols-[minmax(0,1fr)_240px] gap-5">
             {/* Left */}
             <div className="flex-1 min-w-0 space-y-5">
 
               {/* Scores */}
               {app && (
-                <div className="space-y-2.5">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Scores</p>
+                <div className="space-y-3">
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Scores</p>
                   <ScoreBar label="Match Score" score={app.match_score} color="bg-primary" />
                   <ScoreBar label="Credibility" score={candidate.credibility_score} color="bg-emerald-500" />
                   {hasInterview && (
                     <ScoreBar label="Interview Score" score={app.interview_score} color="bg-violet-500" />
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Red Flags</span>
+                    <span className="text-sm text-muted-foreground">Red Flags</span>
                     {parsed?.red_flags && parsed.red_flags.length > 0 ? (
-                      <span className="text-xs font-semibold text-red-500 flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-sm font-medium text-red-500">
                         <AlertTriangle size={11} strokeWidth={2.5} />{parsed.red_flags.length} detected
                       </span>
                     ) : (
-                      <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-sm font-medium text-emerald-600">
                         <Check size={11} strokeWidth={3} />None detected
                       </span>
                     )}
@@ -232,7 +227,7 @@ export default function CandidateDetail() {
                   {parsed?.gaps && parsed.gaps.length > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">Employment Gaps</span>
-                      <span className="text-xs font-semibold text-amber-500 flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-sm font-medium text-amber-500">
                         <Clock size={11} />{parsed.gaps.length} gap{parsed.gaps.length > 1 ? 's' : ''}
                       </span>
                     </div>
@@ -244,7 +239,7 @@ export default function CandidateDetail() {
               {parsed?.red_flags && parsed.red_flags.length > 0 && (
                 <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 space-y-1.5">
                   {parsed.red_flags.map((flag, i) => (
-                    <p key={i} className="text-xs text-red-500 flex items-start gap-1.5">
+                    <p key={i} className="flex items-start gap-1.5 text-sm text-red-500">
                       <AlertTriangle size={11} className="mt-0.5 shrink-0" />{flag}
                     </p>
                   ))}
@@ -255,7 +250,7 @@ export default function CandidateDetail() {
               {parsed?.gaps && parsed.gaps.length > 0 && (
                 <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 space-y-1">
                   {parsed.gaps.map((gap, i) => (
-                    <p key={i} className="text-xs text-amber-600 flex items-center gap-1.5">
+                    <p key={i} className="flex items-center gap-1.5 text-sm text-amber-600">
                       <Clock size={11} className="shrink-0" />
                       {gap.start_date} → {gap.end_date} · {gap.duration_months}mo
                     </p>
@@ -266,10 +261,10 @@ export default function CandidateDetail() {
               {/* Skills */}
               {parsed?.skills && parsed.skills.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Skills Extracted</p>
-                  <div className="flex flex-wrap gap-1.5">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Skills</p>
+                  <div className="flex flex-wrap gap-2">
                     {parsed.skills.map((s) => (
-                      <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{s}</span>
+                      <span key={s} className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -278,12 +273,12 @@ export default function CandidateDetail() {
               {/* Education */}
               {parsed?.education && parsed.education.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Education</p>
+                  <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Education</p>
                   <div className="space-y-2">
                     {parsed.education.map((edu, i) => (
                       <div key={i}>
-                        <p className="text-sm font-medium">{edu.degree}</p>
-                        <p className="text-xs text-muted-foreground">{edu.institution}{edu.year ? ` · ${edu.year}` : ''}</p>
+                        <p className="text-base font-medium">{edu.degree}</p>
+                        <p className="text-sm text-muted-foreground">{edu.institution}{edu.year ? ` · ${edu.year}` : ''}</p>
                       </div>
                     ))}
                   </div>
@@ -292,12 +287,12 @@ export default function CandidateDetail() {
             </div>
 
             {/* Right */}
-            <div className="w-52 shrink-0 space-y-5">
+            <div className="w-60 shrink-0 space-y-5">
 
               {/* Work History */}
               {parsed?.experience && parsed.experience.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Work History</p>
+                  <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Work History</p>
                   <div className="space-y-3">
                     {parsed.experience.map((e, i) => (
                       <motion.div
@@ -305,16 +300,16 @@ export default function CandidateDetail() {
                         initial={{ opacity: 0, x: 8 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.08 }}
-                        className="relative pl-3 border-l-2 border-border"
+                        className="relative border-l border-border pl-3"
                       >
-                        <p className="text-xs font-semibold leading-tight">{e.role}</p>
-                        <p className="text-xs text-muted-foreground">{e.company}</p>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-sm font-medium leading-tight">{e.role}</p>
+                        <p className="text-sm text-muted-foreground">{e.company}</p>
+                        <p className="text-xs text-muted-foreground">
                           {e.start_date} – {e.end_date ?? 'Present'}
                           {e.duration_months ? ` · ${e.duration_months}mo` : ''}
                         </p>
                         {e.description && (
-                          <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{e.description}</p>
+                          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{e.description}</p>
                         )}
                       </motion.div>
                     ))}
@@ -324,7 +319,7 @@ export default function CandidateDetail() {
 
               {/* Sources Verified */}
               <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Sources Verified</p>
+                <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Sources</p>
                 <div className="space-y-1.5">
                   {sources.map((s, i) => (
                     <motion.div
@@ -337,7 +332,7 @@ export default function CandidateDetail() {
                       <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
                         <Check size={8} className="text-white" strokeWidth={3} />
                       </div>
-                      <span className="text-xs text-muted-foreground">{s}</span>
+                      <span className="text-sm text-muted-foreground">{s}</span>
                     </motion.div>
                   ))}
                 </div>
@@ -346,10 +341,10 @@ export default function CandidateDetail() {
               {/* Languages */}
               {parsed?.languages && parsed.languages.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Languages</p>
+                  <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Languages</p>
                   <div className="flex flex-wrap gap-1">
                     {parsed.languages.map((l) => (
-                      <span key={l} className="text-[11px] px-2 py-0.5 rounded border border-border text-muted-foreground">{l}</span>
+                      <span key={l} className="rounded-md border border-border px-2.5 py-1 text-sm text-muted-foreground">{l}</span>
                     ))}
                   </div>
                 </div>
@@ -359,8 +354,8 @@ export default function CandidateDetail() {
 
           {/* Interview section */}
           {app && (
-            <div className="pt-5 border-t border-border space-y-4">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Interview</p>
+            <div className="space-y-4 border-t border-border pt-5">
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Interview</p>
 
               {/* Generate questions */}
               {(app.status === 'inbox' || app.status === 'shortlisted') && (
@@ -383,7 +378,7 @@ export default function CandidateDetail() {
 
               {/* Room link */}
               {app.interview_room_url && (
-                <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+                <div className="flex items-center justify-between rounded-lg border border-border bg-slate-50 px-3 py-2.5">
                   <div className="flex items-center gap-2 min-w-0">
                     <Video size={13} className="text-primary shrink-0" />
                     <span className="text-xs font-mono text-muted-foreground truncate">{app.interview_room_url}</span>
@@ -419,23 +414,23 @@ function InterviewAnalysisPanel({ app }: { app: Application }) {
           { label: 'Communication',  score: a.communication_score },
           { label: 'Attention',       score: a.attention_score },
         ].map(({ label, score }) => (
-          <div key={label} className="rounded-lg border border-border bg-muted/30 p-3 text-center">
-            <p className="text-lg font-bold">{score}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">{label}</p>
+          <div key={label} className="rounded-lg border border-border bg-slate-50 p-3 text-center">
+            <p className="text-3xl font-semibold tracking-[-0.03em] text-foreground">{score}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{label}</p>
           </div>
         ))}
       </div>
 
       {/* Summary */}
-      <p className="text-sm text-muted-foreground leading-relaxed">{a.summary}</p>
+      <p className="text-[15px] leading-7 text-muted-foreground">{a.summary}</p>
 
       {/* Strengths / Concerns */}
       <div className="grid grid-cols-2 gap-5">
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Strengths</p>
+          <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Strengths</p>
           <ul className="space-y-2">
             {a.strengths.map((s, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs text-emerald-600">
+              <li key={i} className="flex items-start gap-2 text-sm leading-6 text-emerald-600">
                 <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
                   <Check size={8} className="text-white" strokeWidth={3} />
                 </div>
@@ -445,10 +440,10 @@ function InterviewAnalysisPanel({ app }: { app: Application }) {
           </ul>
         </div>
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Concerns</p>
+          <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Concerns</p>
           <ul className="space-y-2">
             {a.concerns.map((c, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs text-amber-600">
+              <li key={i} className="flex items-start gap-2 text-sm leading-6 text-amber-600">
                 <AlertTriangle size={12} className="shrink-0 mt-0.5" />
                 {c}
               </li>
@@ -459,17 +454,17 @@ function InterviewAnalysisPanel({ app }: { app: Application }) {
 
       {/* Per-question breakdown */}
       <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Per-Question Breakdown</p>
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Per-question Breakdown</p>
         <div className="space-y-3">
           {a.per_question.map((q, i) => (
-            <div key={i} className="relative pl-3 border-l-2 border-border">
+            <div key={i} className="relative border-l border-border pl-3">
               <div className="flex items-start justify-between gap-3">
-                <p className="text-xs font-medium leading-snug">{q.question}</p>
-                <span className={`text-xs font-bold tabular-nums shrink-0 ${
+                <p className="text-sm font-medium leading-6">{q.question}</p>
+                <span className={`shrink-0 text-sm font-semibold tabular-nums ${
                   q.score >= 85 ? 'text-emerald-500' : q.score >= 70 ? 'text-amber-500' : 'text-red-500'
                 }`}>{q.score}</span>
               </div>
-              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{q.notes}</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">{q.notes}</p>
             </div>
           ))}
         </div>

@@ -5,6 +5,7 @@ import {
   ArrowLeft, List, LayoutGrid, Search, Upload, X, Link, Check, Copy, UserPlus,
 } from 'lucide-react'
 import SimulateCVModal from '@/components/SimulateCVModal'
+import CandidateDrawer from '@/components/CandidateDrawer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -48,6 +49,7 @@ export default function JobCandidatesPage() {
   const [showUpload, setShowUpload] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [showAddCandidate, setShowAddCandidate] = useState(false)
+  const [drawerCandidateId, setDrawerCandidateId] = useState<string | null>(null)
 
   const isScoringRef = useRef(false)
   const isFirstLoadRef = useRef(true)
@@ -326,6 +328,7 @@ export default function JobCandidatesPage() {
           <KanbanBoard
             applications={applications}
             onStatusChange={handleStatusChange}
+            onCandidateClick={(id) => setDrawerCandidateId(id)}
             loading={loading && !scoringState}
           />
         ) : (
@@ -376,7 +379,7 @@ export default function JobCandidatesPage() {
                             layout: { type: 'spring', stiffness: 350, damping: 35 },
                             opacity: { duration: 0.18 },
                           }}
-                          onClick={() => navigate(`/candidate/${candidate.id}`)}
+                          onClick={() => setDrawerCandidateId(candidate.id)}
                           className="grid text-sm border-b border-border last:border-0 hover:bg-accent/50 cursor-pointer"
                           style={{ gridTemplateColumns: '28% 22% 10% 12% 14% 14%' }}
                         >
@@ -408,6 +411,12 @@ export default function JobCandidatesPage() {
           )
         )}
       </div>
+
+      {/* Candidate detail drawer */}
+      <CandidateDrawer
+        candidateId={drawerCandidateId}
+        onClose={() => setDrawerCandidateId(null)}
+      />
 
       {/* Add Candidate / Simulate CV */}
       <SimulateCVModal

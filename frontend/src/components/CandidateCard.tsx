@@ -11,9 +11,10 @@ import { type Application } from '@/lib/api'
 
 interface CandidateCardProps {
   application: Application
+  onCandidateClick?: (candidateId: string) => void
 }
 
-export default function CandidateCard({ application }: CandidateCardProps) {
+export default function CandidateCard({ application, onCandidateClick }: CandidateCardProps) {
   const navigate = useNavigate()
   const candidate = application.candidates!
 
@@ -38,7 +39,7 @@ export default function CandidateCard({ application }: CandidateCardProps) {
     <div ref={setNodeRef} style={style}>
       <Card
         className="cursor-pointer hover:border-primary transition-colors group"
-        onClick={() => navigate(`/candidate/${candidate.id}`)}
+        onClick={() => onCandidateClick ? onCandidateClick(candidate.id) : navigate(`/candidate/${candidate.id}`)}
       >
         <CardContent className="p-4">
           <div className="flex items-start gap-3">

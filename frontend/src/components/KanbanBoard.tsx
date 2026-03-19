@@ -11,6 +11,7 @@ import { cn, STATUS_LABELS, STATUS_COLORS } from '@/lib/utils'
 interface KanbanBoardProps {
   applications: Application[]
   onStatusChange: (applicationId: string, newStatus: string) => void
+  onCandidateClick?: (candidateId: string) => void
   loading?: boolean
 }
 
@@ -19,9 +20,11 @@ const COLUMNS = ['inbox', 'shortlisted', 'interview_done', 'final_round']
 function DroppableColumn({
   columnId,
   applications,
+  onCandidateClick,
 }: {
   columnId: string
   applications: Application[]
+  onCandidateClick?: (candidateId: string) => void
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: columnId })
   const label = STATUS_LABELS[columnId]
@@ -46,7 +49,7 @@ function DroppableColumn({
           ) : (
             applications.map((app) => (
               <div key={app.id} className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300">
-                <CandidateCard application={app} />
+                <CandidateCard application={app} onCandidateClick={onCandidateClick} />
               </div>
             ))
           )}
@@ -56,7 +59,7 @@ function DroppableColumn({
   )
 }
 
-export default function KanbanBoard({ applications, onStatusChange, loading }: KanbanBoardProps) {
+export default function KanbanBoard({ applications, onStatusChange, onCandidateClick, loading }: KanbanBoardProps) {
   const [activeApp, setActiveApp] = useState<Application | null>(null)
 
   function handleDragEnd(event: DragEndEvent) {
@@ -107,7 +110,7 @@ export default function KanbanBoard({ applications, onStatusChange, loading }: K
     >
       <div className="flex gap-4 overflow-x-auto pb-4">
         {COLUMNS.map((col) => (
-          <DroppableColumn key={col} columnId={col} applications={byColumn[col] || []} />
+          <DroppableColumn key={col} columnId={col} applications={byColumn[col] || []} onCandidateClick={onCandidateClick} />
         ))}
       </div>
 

@@ -1,217 +1,80 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronRight, Mic, MicOff, Eye, EyeOff, Copy, Check, ExternalLink } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+import { Copy, Check, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { api, type Application } from '@/lib/api'
 import { Skeleton } from '@/components/ui/skeleton'
-import { api, type Application, type AttentionEvent } from '@/lib/api'
-import { useAIProgress } from '@/lib/ai-progress'
 
 export default function InterviewRoom() {
   const { applicationId } = useParams<{ applicationId: string }>()
-  const navigate = useNavigate()
   const [app, setApp] = useState<Application | null>(null)
-  const [questions, setQuestions] = useState<string[]>([])
-  const [currentQ, setCurrentQ] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [ended, setEnded] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
-  const attentionEventsRef = useRef<AttentionEvent[]>([])
-  const transcriptRef = useRef<string[]>([])
-  const startTimeRef = useRef(Date.now())
-  const gazeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const aiProgress = useAIProgress()
-
-  // Track tab switches and window blur
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.hidden) {
-        attentionEventsRef.current.push({
-          type: 'tab_switch',
-          timestamp: (Date.now() - startTimeRef.current) / 1000,
-        })
-      }
-    }
-    const handleBlur = () => {
-      attentionEventsRef.current.push({
-        type: 'window_blur',
-        timestamp: (Date.now() - startTimeRef.current) / 1000,
-      })
-    }
-    document.addEventListener('visibilitychange', handleVisibility)
-    window.addEventListener('blur', handleBlur)
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility)
-      window.removeEventListener('blur', handleBlur)
-    }
-  }, [])
 
   useEffect(() => {
     if (!applicationId) return
-    aiProgress.start()
-    Promise.all([
-      api.applications.get(applicationId),
-      api.interviews.generateQuestions(applicationId),
-    ]).then(async ([appData, qs]) => {
-      // Auto-create room if not yet assigned
-      if (!appData.interview_room_url) {
-        try {
-          const res = await api.interviews.invite(applicationId)
-          appData = { ...appData, interview_room_url: res.room_url }
-        } catch (e) {
-          console.error('Failed to create room:', e)
-        }
-      }
-      setApp(appData)
-      setQuestions(qs.questions)
-      aiProgress.complete()
-    }).catch((e) => { console.error(e); aiProgress.complete() }).finally(() => setLoading(false))
+    api.applications.get(applicationId)
+      .then(setApp)
+      .catch(console.error)
+      .finally(() => setLoading(false))
   }, [applicationId])
 
-  const handleNextQuestion = () => {
-    if (currentQ < questions.length - 1) {
-      transcriptRef.current.push(`Q${currentQ + 1}: ${questions[currentQ]}`)
-      setCurrentQ((q) => q + 1)
-    }
-  }
+  const joinLink = applicationId ? `${window.location.origin}/join/${applicationId}` : ''
 
-  const handleEndInterview = async () => {
-    if (!applicationId) return
-    transcriptRef.current.push(`Q${currentQ + 1}: ${questions[currentQ]}`)
-    const transcript = transcriptRef.current.join('\n\n')
-    setSubmitting(true)
-    aiProgress.start()
-    try {
-      await api.interviews.analyze(applicationId, transcript, attentionEventsRef.current)
-      aiProgress.complete()
-      navigate(`/review/${applicationId}`)
-    } catch (e) {
-      console.error(e)
-      aiProgress.complete()
-      setSubmitting(false)
-    }
+  const copyLink = () => {
+    navigator.clipboard.writeText(joinLink)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="space-y-4 w-full max-w-2xl p-8">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+      <div className="p-8 space-y-4 max-w-xl">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-16 w-full" />
       </div>
     )
   }
 
-  if (!app) return <div className="p-6 text-muted-foreground">Application not found.</div>
-
-  const roomUrl = app.interview_room_url
+  if (!app) return <div className="p-8 text-muted-foreground">Application not found.</div>
 
   return (
-    <div className="flex h-full gap-0">
-      {/* Left: Video call */}
-      <div className="flex-1 bg-black relative">
-        {roomUrl ? (
-          <iframe
-            src={roomUrl}
-            title="Interview Room"
-            className="w-full h-full border-0"
-            allow="camera; microphone; fullscreen; display-capture"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-white/60">
-            <p>No room URL configured</p>
-          </div>
-        )}
-      </div>
+    <div className="flex items-center justify-center h-full">
+      <div className="max-w-lg w-full mx-auto p-8 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold mb-1">Candidate Interview</h1>
+          <p className="text-muted-foreground text-sm">
+            Share the link below with the candidate. They will record their interview independently —
+            no HR presence required.
+          </p>
+        </div>
 
-      {/* Right: Questions panel */}
-      <div className="w-96 flex flex-col border-l border-border bg-card">
-        {/* Share link bar */}
-        {roomUrl && (
-          <div className="px-4 py-3 border-b border-border bg-primary/5 flex items-center gap-2">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground mb-0.5">Candidate join link</p>
-              <p className="text-xs font-mono truncate text-foreground">{roomUrl}</p>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="shrink-0"
-              onClick={() => {
-                navigator.clipboard.writeText(roomUrl)
-                setCopied(true)
-                setTimeout(() => setCopied(false), 2000)
-              }}
-            >
+        <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Candidate join link</p>
+          <div className="flex items-center gap-2">
+            <p className="flex-1 font-mono text-sm truncate text-foreground">{joinLink}</p>
+            <Button size="sm" variant="outline" onClick={copyLink} className="shrink-0">
               {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
               {copied ? 'Copied!' : 'Copy'}
             </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="shrink-0 px-2"
-              onClick={() => window.open(roomUrl, '_blank')}
-            >
+            <Button size="sm" variant="ghost" className="shrink-0 px-2" onClick={() => window.open(joinLink, '_blank')}>
               <ExternalLink size={13} />
             </Button>
           </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-blue-500/5 p-4 text-sm text-muted-foreground leading-relaxed">
+          <strong className="text-foreground">How it works:</strong> the candidate opens their link,
+          sees the interview questions overlaid on their camera feed, records their answers,
+          then submits. The recording is automatically transcribed and analyzed — you'll see
+          results in the candidate's profile once complete.
+        </div>
+
+        {app.status === 'interview_done' && (
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-600 dark:text-emerald-400">
+            Interview completed — view the analysis in the candidate's profile.
+          </div>
         )}
-
-        <div className="p-4 border-b border-border">
-          <h2 className="font-semibold">Interview Questions</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Question {currentQ + 1} of {questions.length}
-          </p>
-        </div>
-
-        {/* Current question - large display */}
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <Badge variant="default">Current</Badge>
-          </div>
-          <p className="text-lg font-medium leading-relaxed">
-            {questions[currentQ]}
-          </p>
-        </div>
-
-        {/* Upcoming questions */}
-        <div className="flex-1 overflow-auto p-4">
-          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-3">Upcoming</p>
-          <div className="space-y-2">
-            {questions.slice(currentQ + 1).map((q, i) => (
-              <div key={i} className="p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground">
-                <span className="text-xs font-semibold mr-2">Q{currentQ + 2 + i}</span>
-                {q}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="p-4 border-t border-border space-y-2">
-          {!ended && currentQ < questions.length - 1 && (
-            <Button className="w-full" onClick={handleNextQuestion}>
-              <ChevronRight size={16} />
-              Next Question
-            </Button>
-          )}
-          {(currentQ === questions.length - 1 || ended) && (
-            <Button
-              className="w-full"
-              variant="destructive"
-              onClick={handleEndInterview}
-              disabled={submitting}
-            >
-              {submitting ? 'Submitting…' : 'End Interview'}
-            </Button>
-          )}
-          <p className="text-xs text-muted-foreground text-center">
-            Your attention is being monitored during this interview
-          </p>
-        </div>
       </div>
     </div>
   )

@@ -5,6 +5,7 @@ import CandidatesPage from '@/pages/CandidatesPage'
 import JobsPage from '@/pages/JobsPage'
 import CandidateDetail from '@/pages/CandidateDetail'
 import InterviewRoom from '@/pages/InterviewRoom'
+import CandidateInterviewView from '@/pages/CandidateInterviewView'
 import VideoReview from '@/pages/VideoReview'
 import ThankYou from '@/pages/ThankYou'
 import ApplyPage from '@/pages/ApplyPage'
@@ -19,6 +20,7 @@ export default function App() {
         {/* Public routes (no sidebar) */}
         <Route path="/apply/:jobId" element={<ApplyPage />} />
         <Route path="/interview/:applicationId" element={<InterviewRoom />} />
+        <Route path="/join/:applicationId" element={<CandidateInterviewView />} />
         <Route path="/thank-you" element={<ThankYou />} />
 
         {/* HR routes (with sidebar) */}

@@ -35,6 +35,11 @@ public class JobApplication {
     @Column(columnDefinition = "TEXT")
     private String attentionEvents;    // JSON string
 
+    @Column(columnDefinition = "TEXT")
+    private String questions;          // JSON array of question strings
+
+    private Integer currentQuestionIndex = 0;
+
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -83,6 +88,12 @@ public class JobApplication {
 
     public String getAttentionEvents() { return attentionEvents; }
     public void setAttentionEvents(String attentionEvents) { this.attentionEvents = attentionEvents; }
+
+    public String getQuestions() { return questions; }
+    public void setQuestions(String questions) { this.questions = questions; }
+
+    public Integer getCurrentQuestionIndex() { return currentQuestionIndex; }
+    public void setCurrentQuestionIndex(Integer currentQuestionIndex) { this.currentQuestionIndex = currentQuestionIndex; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

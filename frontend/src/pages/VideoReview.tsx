@@ -140,7 +140,7 @@ export default function VideoReview() {
                   {app.video_url ? (
                     <video
                       ref={videoRef}
-                      src={app.video_url}
+                      src={app.video_url.startsWith('http') ? app.video_url : `http://localhost:8000${app.video_url}`}
                       controls
                       className="w-full aspect-video bg-black"
                     />

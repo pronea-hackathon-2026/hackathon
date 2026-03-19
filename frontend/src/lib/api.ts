@@ -236,6 +236,21 @@ export const api = {
       }),
     generateQuestions: (applicationId: string) =>
       req<{ questions: string[] }>(`/interviews/questions/${applicationId}`, { method: 'POST' }),
+    getSession: (applicationId: string) =>
+      req<{ questions: string[]; current_index: number }>(`/interviews/session/${applicationId}`),
+    setCurrentQuestion: (applicationId: string, index: number) =>
+      req<{ current_index: number }>(`/interviews/session/${applicationId}/question`, {
+        method: 'PUT',
+        body: JSON.stringify({ current_index: index }),
+      }),
+    uploadRecording: async (applicationId: string, videoBlob: Blob, audioBlob?: Blob | null): Promise<{ status: string; interview_score: number }> => {
+      const form = new FormData()
+      form.append('video', videoBlob, `${applicationId}.webm`)
+      if (audioBlob) form.append('audio', audioBlob, `${applicationId}-audio.webm`)
+      const res = await fetch(`${BASE}/interviews/recording/${applicationId}`, { method: 'POST', body: form })
+      if (!res.ok) throw new Error(await res.text())
+      return res.json()
+    },
   },
 }
 

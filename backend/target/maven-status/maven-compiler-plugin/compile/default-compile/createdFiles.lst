@@ -2,6 +2,7 @@ com/talentlens/controller/HealthController.class
 com/talentlens/controller/JobController.class
 com/talentlens/model/Candidate.class
 com/talentlens/repository/JobRepository.class
+com/talentlens/controller/InterviewController$1.class
 com/talentlens/controller/ApplicationController.class
 com/talentlens/controller/CandidateController$1.class
 com/talentlens/controller/CandidateController.class

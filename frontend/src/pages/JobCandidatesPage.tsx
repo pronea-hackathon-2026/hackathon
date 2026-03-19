@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import SimulateCVModal from '@/components/SimulateCVModal'
 import CandidateDrawer from '@/components/CandidateDrawer'
+import CandidateAvatar from '@/components/CandidateAvatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -26,10 +27,6 @@ interface ScoringState {
 }
 
 type ViewMode = 'list' | 'kanban'
-
-function initials(name: string) {
-  return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
-}
 
 export default function JobCandidatesPage() {
   const { jobId } = useParams<{ jobId: string }>()
@@ -292,9 +289,7 @@ export default function JobCandidatesPage() {
                     className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent text-left"
                     onClick={() => navigate(`/candidate/${c.id}`)}
                   >
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
-                      {initials(c.name)}
-                    </div>
+                    <CandidateAvatar candidateId={c.id} name={c.name} className="h-8 w-8" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">{c.name}</p>
                       <p className="text-xs text-muted-foreground">{c.email}</p>
@@ -384,9 +379,7 @@ export default function JobCandidatesPage() {
                           style={{ gridTemplateColumns: '28% 22% 10% 12% 14% 14%' }}
                         >
                           <div className="px-4 py-2 flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0">
-                              {initials(candidate.name)}
-                            </div>
+                            <CandidateAvatar candidateId={candidate.id} name={candidate.name} className="h-8 w-8 shrink-0" />
                             <span className="font-medium truncate">{candidate.name}</span>
                           </div>
                           <div className="px-4 py-2 flex items-center text-muted-foreground truncate">{candidate.email ?? '—'}</div>

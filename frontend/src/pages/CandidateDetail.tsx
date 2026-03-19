@@ -8,13 +8,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import CandidateAvatar from '@/components/CandidateAvatar'
 import SourceBadge from '@/components/SourceBadge'
 import StatusBadge from '@/components/StatusBadge'
 import { api, type Candidate, type Application, type Job } from '@/lib/api'
-
-function initials(name: string) {
-  return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
-}
 
 function ScoreBar({ label, score, color = 'bg-primary' }: { label: string; score: number; color?: string }) {
   return (
@@ -159,9 +156,7 @@ export default function CandidateDetail() {
 
           {/* Identity */}
           <div className="flex items-start gap-4 rounded-xl border border-border bg-background p-5">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-lg">
-              {initials(candidate.name)}
-            </div>
+            <CandidateAvatar candidateId={candidate.id} name={candidate.name} className="h-14 w-14 shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-3xl font-semibold tracking-[-0.03em] text-foreground">{candidate.name}</p>

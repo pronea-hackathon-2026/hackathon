@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Users, Briefcase } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import CandidateAvatar from '@/components/CandidateAvatar'
 import SourceBadge from '@/components/SourceBadge'
 import { ScoreGauge } from '@/components/ScoreGauge'
 import { api, type Candidate, type Job } from '@/lib/api'
@@ -30,10 +31,6 @@ export default function CandidatesPage() {
     if (!jobId) return Math.max(...c.applications.map((a) => a.match_score ?? 0))
     const app = c.applications.find((a) => a.job_id === jobId)
     return app?.match_score ?? 0
-  }
-
-  function initials(name: string) {
-    return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
   }
 
   const activeJob = jobs.find((j) => j.id === activeJobId)
@@ -110,9 +107,7 @@ export default function CandidatesPage() {
                   >
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0">
-                          {initials(c.name)}
-                        </div>
+                        <CandidateAvatar candidateId={c.id} name={c.name} className="h-8 w-8 shrink-0" />
                         <span className="font-medium">{c.name}</span>
                       </div>
                     </td>

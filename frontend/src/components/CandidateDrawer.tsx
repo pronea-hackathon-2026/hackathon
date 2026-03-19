@@ -8,13 +8,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import CandidateAvatar from '@/components/CandidateAvatar'
 import SourceBadge from '@/components/SourceBadge'
 import StatusBadge from '@/components/StatusBadge'
 import { api, type Candidate, type Application, type Job } from '@/lib/api'
-
-function initials(name: string) {
-  return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
-}
 
 function ScoreBar({ label, score, color = 'bg-primary' }: { label: string; score: number; color?: string }) {
   return (
@@ -129,9 +126,12 @@ export default function CandidateDrawer({ candidateId, onClose }: Props) {
                 </div>
               ) : (
                 <>
-                  <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm shrink-0">
-                    {initials(candidate!.name)}
-                  </div>
+                  <CandidateAvatar
+                    candidateId={candidate!.id}
+                    name={candidate!.name}
+                    className="h-9 w-9 shrink-0"
+                    fallbackClassName="bg-slate-100 text-slate-600"
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-base leading-tight text-slate-900">{candidate!.name}</p>
                     <p className="mt-0.5 text-xs text-slate-500">Candidate snapshot</p>
@@ -193,9 +193,12 @@ export default function CandidateDrawer({ candidateId, onClose }: Props) {
 
                   {/* Identity */}
                   <div className="flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-[0_2px_10px_rgba(15,23,42,0.03)]">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-base shrink-0">
-                      {initials(candidate!.name)}
-                    </div>
+                    <CandidateAvatar
+                      candidateId={candidate!.id}
+                      name={candidate!.name}
+                      className="h-12 w-12 shrink-0"
+                      fallbackClassName="bg-slate-100 text-slate-600 text-base"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-bold text-lg leading-tight text-slate-900">{candidate!.name}</p>

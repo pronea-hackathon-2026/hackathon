@@ -4,9 +4,9 @@ import { CSS } from '@dnd-kit/utilities'
 import { Video, GripVertical } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import ScoreBadge from './ScoreBadge'
 import SourceBadge from './SourceBadge'
+import CandidateAvatar from './CandidateAvatar'
 import { type Application } from '@/lib/api'
 
 interface CandidateCardProps {
@@ -28,13 +28,6 @@ export default function CandidateCard({ application, onCandidateClick }: Candida
     opacity: isDragging ? 0.5 : 1,
   }
 
-  const initials = candidate.name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-
   return (
     <div ref={setNodeRef} style={style}>
       <Card
@@ -53,9 +46,7 @@ export default function CandidateCard({ application, onCandidateClick }: Candida
               <GripVertical size={14} />
             </div>
 
-            <Avatar className="h-8 w-8 shrink-0">
-              <AvatarFallback className="text-xs bg-primary/20 text-primary">{initials}</AvatarFallback>
-            </Avatar>
+            <CandidateAvatar candidateId={candidate.id} name={candidate.name} className="h-8 w-8 shrink-0" />
 
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">

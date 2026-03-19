@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, List, LayoutGrid, Search, Upload, X, Link, Check, Copy,
@@ -47,6 +48,7 @@ export default function JobCandidatesPage() {
   const [uploading, setUploading] = useState(false)
 
   const isScoringRef = useRef(false)
+  const isFirstLoadRef = useRef(true)
 
   const loadApplications = useCallback(async (jId: string) => {
     if (!jId || isScoringRef.current) return
@@ -74,15 +76,26 @@ export default function JobCandidatesPage() {
 
   useEffect(() => {
     if (!jobId) return
-    // Reset scoring state from any previous job before loading the new one
     isScoringRef.current = false
     setScoringState(null)
-    setApplications([])
+
     api.jobs.list().then((jobs) => {
       setAllJobs(jobs)
       setJob(jobs.find((j) => j.id === jobId) ?? null)
     }).catch(console.error)
-    loadApplications(jobId)
+
+    if (isFirstLoadRef.current) {
+      // Initial page load — run scoring animation
+      isFirstLoadRef.current = false
+      setApplications([])
+      loadApplications(jobId)
+    } else {
+      // Job switch — swap instantly so layout animation can run
+      api.jobs.getApplications(jobId).then((apps) => {
+        setLoading(false)
+        setApplications(apps)
+      })
+    }
   }, [jobId])
 
   // Polling while scoring
@@ -329,65 +342,62 @@ export default function JobCandidatesPage() {
             </div>
           ) : (
             <div className="rounded-lg border border-border overflow-hidden">
-              <table className="w-full text-sm table-fixed">
-                <colgroup>
-                  <col className="w-[28%]" />
-                  <col className="w-[22%]" />
-                  <col className="w-[10%]" />
-                  <col className="w-[12%]" />
-                  <col className="w-[14%]" />
-                  <col className="w-[14%]" />
-                </colgroup>
-                <thead>
-                  <tr className="border-b border-border bg-card/50">
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Candidate</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Email</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Source</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
-                    <th className="text-center px-4 py-3 font-medium text-muted-foreground">Credibility</th>
-                    <th className="text-center px-4 py-3 font-medium text-muted-foreground">Match</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {applications.map((app) => {
-                    const candidate = app.candidates
-                    if (!candidate) return null
-                    return (
-                      <tr
-                        key={app.id}
-                        onClick={() => navigate(`/candidate/${candidate.id}`)}
-                        className="border-b border-border last:border-0 hover:bg-accent/50 cursor-pointer transition-colors"
-                      >
-                        <td className="px-4 py-2">
-                          <div className="flex items-center gap-3">
+              {/* Header */}
+              <div className="grid text-sm border-b border-border bg-card/50" style={{ gridTemplateColumns: '28% 22% 10% 12% 14% 14%' }}>
+                <div className="px-4 py-3 font-medium text-muted-foreground">Candidate</div>
+                <div className="px-4 py-3 font-medium text-muted-foreground">Email</div>
+                <div className="px-4 py-3 font-medium text-muted-foreground">Source</div>
+                <div className="px-4 py-3 font-medium text-muted-foreground">Status</div>
+                <div className="px-4 py-3 font-medium text-muted-foreground text-center">Credibility</div>
+                <div className="px-4 py-3 font-medium text-muted-foreground text-center">Match</div>
+              </div>
+              {/* Animated rows */}
+              <LayoutGroup>
+                <AnimatePresence initial={false}>
+                  {[...applications]
+                    .sort((a, b) => b.match_score - a.match_score)
+                    .map((app) => {
+                      const candidate = app.candidates
+                      if (!candidate) return null
+                      return (
+                        <motion.div
+                          key={app.candidate_id}
+                          layout="position"
+                          initial={{ opacity: 0, y: -12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 12 }}
+                          transition={{
+                            layout: { type: 'spring', stiffness: 350, damping: 35 },
+                            opacity: { duration: 0.18 },
+                          }}
+                          onClick={() => navigate(`/candidate/${candidate.id}`)}
+                          className="grid text-sm border-b border-border last:border-0 hover:bg-accent/50 cursor-pointer"
+                          style={{ gridTemplateColumns: '28% 22% 10% 12% 14% 14%' }}
+                        >
+                          <div className="px-4 py-2 flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold shrink-0">
                               {initials(candidate.name)}
                             </div>
                             <span className="font-medium truncate">{candidate.name}</span>
                           </div>
-                        </td>
-                        <td className="px-4 py-2 text-muted-foreground truncate">{candidate.email ?? '—'}</td>
-                        <td className="px-4 py-2">
-                          <SourceBadge source={candidate.source} />
-                        </td>
-                        <td className="px-4 py-2 text-muted-foreground capitalize text-xs">
-                          {app.status?.replace(/_/g, ' ') ?? '—'}
-                        </td>
-                        <td className="px-4 py-2">
-                          <div className="flex justify-center">
+                          <div className="px-4 py-2 flex items-center text-muted-foreground truncate">{candidate.email ?? '—'}</div>
+                          <div className="px-4 py-2 flex items-center">
+                            <SourceBadge source={candidate.source} />
+                          </div>
+                          <div className="px-4 py-2 flex items-center text-muted-foreground capitalize text-xs">
+                            {app.status?.replace(/_/g, ' ') ?? '—'}
+                          </div>
+                          <div className="px-4 py-2 flex items-center justify-center">
                             <ScoreGauge score={candidate.credibility_score ?? 0} label="Credibility" size={64} />
                           </div>
-                        </td>
-                        <td className="px-4 py-2">
-                          <div className="flex justify-center">
+                          <div className="px-4 py-2 flex items-center justify-center">
                             <ScoreGauge score={app.match_score ?? 0} label="Match" size={64} />
                           </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+                        </motion.div>
+                      )
+                    })}
+                </AnimatePresence>
+              </LayoutGroup>
             </div>
           )
         )}

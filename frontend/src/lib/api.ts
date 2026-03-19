@@ -558,7 +558,7 @@ export const api = {
       id: `mock-c-new-${Date.now()}`, name, email, source: 'manual', raw_text: null,
       parsed: null, credibility_score: 0, embedding: null, created_at: new Date().toISOString(), applications: [],
     }),
-    uploadCV: async () => { await delay(800); return { status: 'parsed' } },
+    uploadCV: async (_candidateId: string, _file: File) => { await delay(800); return { status: 'parsed' } },
     list: () => Promise.resolve(MOCK_CANDIDATES),
     get: (id: string) => Promise.resolve(getCandidateWithApps(id) ?? MOCK_CANDIDATES[0]),
     search: (query: string) => {
@@ -580,7 +580,7 @@ export const api = {
       MOCK_JOBS.push(j)
       return j
     },
-    delete: async () => { await delay(300); return {} },
+    delete: async (_id: string) => { await delay(300); return {} },
     update: async (id: string, data: { title?: string; description?: string; requirements?: JobRequirements }) => {
       await delay(400)
       const j = MOCK_JOBS.find((j) => j.id === id)
@@ -588,6 +588,10 @@ export const api = {
       return j ?? MOCK_JOBS[0]
     },
     rescore: async () => { await delay(300); return {} },
+    getApplications: (jobId: string) =>
+      Promise.resolve(
+        _applications.filter((a) => a.job_id === jobId).map((a) => getApp(a.id) ?? a)
+      ),
     progress: (jobId: string) => {
       if (!_demoStartTimes.has(jobId)) _demoStartTimes.set(jobId, Date.now())
       const elapsed = Date.now() - _demoStartTimes.get(jobId)!
@@ -599,7 +603,7 @@ export const api = {
   },
 
   applications: {
-    create: async (candidate_id: string, job_id: string) => {
+    create: async (candidate_id: string, job_id: string, _custom_answers?: Record<string, string>) => {
       await delay(400)
       return _applications.find((a) => a.candidate_id === candidate_id && a.job_id === job_id) ?? _applications[0]
     },

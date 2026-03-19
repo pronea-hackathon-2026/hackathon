@@ -203,6 +203,7 @@ public class ScoringService {
 
     private static final String ANALYSIS_SYSTEM = """
         You are an expert interviewer. Analyse the interview transcript against the job description.
+        Also consider the candidate's answers to the custom application questions when evaluating them.
         Return ONLY valid JSON (no markdown, no explanation) with this structure:
         {
           "answer_quality_score": integer 0-100,
@@ -214,9 +215,44 @@ public class ScoringService {
         }
         """;
 
+    public Map<String, Object> analyzeInterview(String transcript, String jobDescription, String customAnswersJson, String requirementsJson) {
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("Job Description:\n").append(jobDescription).append("\n\n");
+
+        // Include custom application questions and answers if available
+        if (customAnswersJson != null && !customAnswersJson.isBlank() && requirementsJson != null) {
+            try {
+                Map<String, Object> answers = mapper.readValue(customAnswersJson, new TypeReference<Map<String, Object>>() {});
+                Map<String, Object> requirements = mapper.readValue(requirementsJson, new TypeReference<Map<String, Object>>() {});
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> questions = (List<Map<String, Object>>) requirements.get("application_questions");
+
+                if (questions != null && !questions.isEmpty() && !answers.isEmpty()) {
+                    prompt.append("=== CANDIDATE'S APPLICATION ANSWERS ===\n");
+                    prompt.append("(The candidate answered these questions when applying. Consider their responses in your evaluation.)\n\n");
+                    for (Map<String, Object> q : questions) {
+                        String qId = (String) q.get("id");
+                        String qText = (String) q.get("question");
+                        Object answer = answers.get(qId);
+                        if (qText != null && answer != null) {
+                            prompt.append("Q: ").append(qText).append("\n");
+                            prompt.append("A: ").append(answer).append("\n\n");
+                        }
+                    }
+                    prompt.append("=== END OF APPLICATION ANSWERS ===\n\n");
+                }
+            } catch (Exception ignored) {
+                // If parsing fails, continue without custom answers
+            }
+        }
+
+        prompt.append("Interview Transcript:\n").append(transcript);
+        return gemini.generateJson(ANALYSIS_SYSTEM, prompt.toString());
+    }
+
+    // Overload for backward compatibility
     public Map<String, Object> analyzeInterview(String transcript, String jobDescription) {
-        String prompt = "Job Description:\n" + jobDescription + "\n\nTranscript:\n" + transcript;
-        return gemini.generateJson(ANALYSIS_SYSTEM, prompt);
+        return analyzeInterview(transcript, jobDescription, null, null);
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────

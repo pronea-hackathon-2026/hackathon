@@ -56,15 +56,24 @@ public class InterviewController {
                 List<Map<String, Object>> attentionEvents =
                     (List<Map<String, Object>>) body.getOrDefault("attention_events", List.of());
 
-                // Get job description for analysis context
-                String jobDescription = app.getJobId() != null
-                    ? jobRepo.findById(app.getJobId()).map(j -> j.getDescription()).orElse("")
-                    : "";
+                // Get job description and requirements for analysis context
+                String jobDescription = "";
+                String jobRequirements = null;
+                if (app.getJobId() != null) {
+                    var jobOpt = jobRepo.findById(app.getJobId());
+                    if (jobOpt.isPresent()) {
+                        jobDescription = jobOpt.get().getDescription() != null ? jobOpt.get().getDescription() : "";
+                        jobRequirements = jobOpt.get().getRequirements();
+                    }
+                }
+
+                // Get candidate's custom answers
+                String customAnswers = app.getCustomAnswers();
 
                 int attentionScore = scoring.calculateAttentionScore(attentionEvents);
                 Map<String, Object> analysis;
                 try {
-                    analysis = scoring.analyzeInterview(transcript, jobDescription);
+                    analysis = scoring.analyzeInterview(transcript, jobDescription, customAnswers, jobRequirements);
                 } catch (Exception geminiEx) {
                     // Fallback analysis if Gemini fails
                     int wordCount = transcript.split("\\s+").length;

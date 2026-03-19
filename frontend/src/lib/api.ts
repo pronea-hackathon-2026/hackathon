@@ -175,6 +175,11 @@ export const api = {
         body: JSON.stringify({ title, description, requirements }),
       }),
     delete: (id: string) => req(`/jobs/${id}`, { method: 'DELETE' }),
+    update: (id: string, data: { title?: string; description?: string; requirements?: JobRequirements }) =>
+      req<Job>(`/jobs/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
     rescore: (id: string) => req(`/jobs/${id}/rescore`, { method: 'POST' }),
     progress: (id: string) => withFallback(
       () => req<{ total: number; scored: number; applications: Application[] }>(`/jobs/${id}/progress`),
@@ -211,10 +216,10 @@ export const api = {
   },
 
   applications: {
-    create: (candidate_id: string, job_id: string) =>
+    create: (candidate_id: string, job_id: string, custom_answers?: Record<string, string>) =>
       req<Application>('/applications', {
         method: 'POST',
-        body: JSON.stringify({ candidate_id, job_id }),
+        body: JSON.stringify({ candidate_id, job_id, custom_answers }),
       }),
     updateStatus: (id: string, status: string) => withFallback(
       () => req<Application>(`/applications/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
@@ -329,6 +334,7 @@ export interface Application {
   transcript: string | null
   analysis: InterviewAnalysis | null
   attention_events: AttentionEvent[] | null
+  custom_answers: Record<string, string> | null
   created_at: string
   candidates?: Candidate
   jobs?: Job

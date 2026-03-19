@@ -37,9 +37,9 @@ public class ApplicationController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Map<String, String> body) {
-        UUID candidateId = UUID.fromString(body.get("candidate_id"));
-        UUID jobId = UUID.fromString(body.get("job_id"));
+    public ResponseEntity<?> create(@RequestBody Map<String, Object> body) {
+        UUID candidateId = UUID.fromString((String) body.get("candidate_id"));
+        UUID jobId = UUID.fromString((String) body.get("job_id"));
 
         // Return existing if duplicate
         Optional<JobApplication> existing = appRepo.findByCandidateIdAndJobId(candidateId, jobId);
@@ -60,6 +60,17 @@ public class ApplicationController {
         app.setCredibilityScore(credSc);
         app.setOverallScore(scoring.calculateOverallScore(matchSc, credSc, 0));
         app.setStatus("inbox");
+
+        // Save custom question answers if provided
+        Object customAnswers = body.get("custom_answers");
+        if (customAnswers != null) {
+            try {
+                app.setCustomAnswers(mapper.writeValueAsString(customAnswers));
+            } catch (Exception e) {
+                // Ignore JSON serialization errors
+            }
+        }
+
         appRepo.save(app);
 
         return ResponseEntity.ok(buildAppMap(app, true));
@@ -105,6 +116,7 @@ public class ApplicationController {
         // Parse JSON fields
         m.put("analysis", parseJson(a.getAnalysis()));
         m.put("attention_events", parseJsonList(a.getAttentionEvents()));
+        m.put("custom_answers", parseJson(a.getCustomAnswers()));
 
         if (includeNested) {
             // Nested candidate

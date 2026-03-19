@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAIProgress } from '@/lib/ai-progress'
-import { Briefcase, Plus, LayoutDashboard, Trash2, X, ChevronRight, ChevronLeft, CheckCircle2, Copy, Check, Link } from 'lucide-react'
+import { Briefcase, Plus, LayoutDashboard, Trash2, X, ChevronRight, ChevronLeft, CheckCircle2, Copy, Check, Link, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -388,24 +388,38 @@ function QuestionBuilder({
   )
 }
 
-// ─── Create Job Dialog ────────────────────────────────────────────────────────
+// ─── Job Form Dialog (Create or Edit) ─────────────────────────────────────────
 
-function CreateJobDialog({
+function JobFormDialog({
   open,
   onClose,
-  onCreated,
+  onSaved,
+  editJob,
 }: {
   open: boolean
   onClose: () => void
-  onCreated: (job: Job) => void
+  onSaved: (job: Job) => void
+  editJob?: Job | null
 }) {
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [title, setTitle] = useState('')
   const [desc, setDesc] = useState('')
   const [req, setReq] = useState<JobRequirements>(defaultRequirements())
-  const [creating, setCreating] = useState(false)
+  const [saving, setSaving] = useState(false)
   const aiProgress = useAIProgress()
+
+  const isEditMode = !!editJob
+
+  // Initialize form with edit data when editJob changes
+  useEffect(() => {
+    if (editJob) {
+      setTitle(editJob.title || '')
+      setDesc(editJob.description || '')
+      setReq(editJob.requirements || defaultRequirements())
+      setStep(0)
+    }
+  }, [editJob])
 
   function reset() {
     setStep(0)
@@ -419,21 +433,26 @@ function CreateJobDialog({
     onClose()
   }
 
-  async function handleCreate() {
+  async function handleSave() {
     if (!title.trim()) return
-    setCreating(true)
+    setSaving(true)
     aiProgress.start()
     try {
-      const job = await api.jobs.create(title, desc, req)
+      let job: Job
+      if (isEditMode && editJob) {
+        job = await api.jobs.update(editJob.id, { title, description: desc, requirements: req })
+      } else {
+        job = await api.jobs.create(title, desc, req)
+        navigate(`/?job=${job.id}`)
+      }
       aiProgress.complete()
-      onCreated(job)
+      onSaved(job)
       handleClose()
-      navigate(`/?job=${job.id}`)
     } catch (e) {
       console.error(e)
       aiProgress.complete()
     } finally {
-      setCreating(false)
+      setSaving(false)
     }
   }
 
@@ -447,7 +466,7 @@ function CreateJobDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Create New Job</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit Job' : 'Create New Job'}</DialogTitle>
         </DialogHeader>
 
         {/* Step indicator */}
@@ -720,10 +739,10 @@ function CreateJobDialog({
           ) : (
             <Button
               size="sm"
-              onClick={handleCreate}
-              disabled={creating || !title.trim()}
+              onClick={handleSave}
+              disabled={saving || !title.trim()}
             >
-              {creating ? 'Creating…' : 'Create Job'}
+              {saving ? (isEditMode ? 'Saving…' : 'Creating…') : (isEditMode ? 'Save Changes' : 'Create Job')}
             </Button>
           )}
         </div>
@@ -800,10 +819,21 @@ export default function JobsPage() {
   const navigate = useNavigate()
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
-  const [showNew, setShowNew] = useState(false)
+  const [showForm, setShowForm] = useState(false)
+  const [editingJob, setEditingJob] = useState<Job | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [createdJob, setCreatedJob] = useState<Job | null>(null)
   const [copiedJobId, setCopiedJobId] = useState<string | null>(null)
+
+  function handleEdit(job: Job) {
+    setEditingJob(job)
+    setShowForm(true)
+  }
+
+  function handleCloseForm() {
+    setShowForm(false)
+    setEditingJob(null)
+  }
 
   function handleCopyLink(jobId: string) {
     const applyUrl = `${window.location.origin}/apply/${jobId}`
@@ -853,7 +883,7 @@ export default function JobsPage() {
             <span className="text-sm text-muted-foreground">({jobs.length})</span>
           )}
         </div>
-        <Button size="sm" onClick={() => setShowNew(true)}>
+        <Button size="sm" onClick={() => setShowForm(true)}>
           <Plus size={14} />
           New Job
         </Button>
@@ -868,7 +898,7 @@ export default function JobsPage() {
           <div className="flex flex-col items-center justify-center h-64 gap-3 text-muted-foreground">
             <Briefcase size={40} className="opacity-30" />
             <p>No jobs yet</p>
-            <Button onClick={() => setShowNew(true)}>
+            <Button onClick={() => setShowForm(true)}>
               <Plus size={14} />
               Create First Job
             </Button>
@@ -932,6 +962,14 @@ export default function JobsPage() {
                           <Button
                             size="sm"
                             variant="outline"
+                            onClick={() => handleEdit(j)}
+                          >
+                            <Pencil size={13} />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
                             onClick={() => handleCopyLink(j.id)}
                             className={copiedJobId === j.id ? 'text-green-500 border-green-500' : ''}
                           >
@@ -963,12 +1001,19 @@ export default function JobsPage() {
         )}
       </div>
 
-      <CreateJobDialog
-        open={showNew}
-        onClose={() => setShowNew(false)}
-        onCreated={(job) => {
-          setJobs((prev) => [job, ...prev])
-          setCreatedJob(job)
+      <JobFormDialog
+        open={showForm}
+        onClose={handleCloseForm}
+        editJob={editingJob}
+        onSaved={(job) => {
+          if (editingJob) {
+            // Update existing job in list
+            setJobs((prev) => prev.map((j) => j.id === job.id ? job : j))
+          } else {
+            // Add new job to list
+            setJobs((prev) => [job, ...prev])
+            setCreatedJob(job)
+          }
         }}
       />
 

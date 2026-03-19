@@ -11,6 +11,7 @@ com/talentlens/model/JobApplication.class
 com/talentlens/repository/CandidateRepository.class
 com/talentlens/service/ScoringService$1.class
 com/talentlens/service/GeminiService.class
+com/talentlens/service/ScoringService$4.class
 com/talentlens/controller/ApplicationController$1.class
 com/talentlens/repository/JobApplicationRepository.class
 com/talentlens/service/ScoringService.class
@@ -21,4 +22,5 @@ com/talentlens/TalentLensApplication.class
 com/talentlens/model/Job.class
 com/talentlens/service/SeedService.class
 com/talentlens/service/SeedService$1Demo.class
+com/talentlens/service/ScoringService$3.class
 com/talentlens/service/CvParserService.class

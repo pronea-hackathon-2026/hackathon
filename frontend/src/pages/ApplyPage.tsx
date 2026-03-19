@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Upload, CheckCircle2, Loader2, ArrowRight, ArrowLeft, Video, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,7 @@ import { api, type Job } from '@/lib/api'
 
 export default function ApplyPage() {
   const { jobId } = useParams<{ jobId: string }>()
+  const navigate = useNavigate()
   const [job, setJob] = useState<Job | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -19,6 +20,7 @@ export default function ApplyPage() {
   const [email, setEmail] = useState('')
   const [cvFile, setCvFile] = useState<File | null>(null)
   const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [applicationId, setApplicationId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!jobId) return
@@ -88,7 +90,9 @@ export default function ApplyPage() {
     try {
       const candidate = await api.candidates.create(name, email)
       await api.candidates.uploadCV(candidate.id, cvFile)
-      await api.applications.create(candidate.id, jobId)
+      // Pass custom question answers along with the application
+      const application = await api.applications.create(candidate.id, jobId, Object.keys(answers).length > 0 ? answers : undefined)
+      setApplicationId(application.id)
       setStep('done')
     } catch (err) {
       console.error(err)
@@ -303,7 +307,11 @@ export default function ApplyPage() {
 
               <div className="space-y-3">
                 <button
-                  onClick={() => setStep('instant-meeting')}
+                  onClick={() => {
+                    if (applicationId) {
+                      navigate(`/interview/${applicationId}`)
+                    }
+                  }}
                   className="w-full flex items-center gap-4 p-4 rounded-lg border border-input hover:border-primary hover:bg-accent transition-colors text-left"
                 >
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -311,7 +319,7 @@ export default function ApplyPage() {
                   </div>
                   <div>
                     <p className="font-medium">Start interview now</p>
-                    <p className="text-sm text-muted-foreground">Join a video call right away</p>
+                    <p className="text-sm text-muted-foreground">Begin your AI video interview</p>
                   </div>
                 </button>
 

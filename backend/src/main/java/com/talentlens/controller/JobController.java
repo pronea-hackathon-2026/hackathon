@@ -57,6 +57,29 @@ public class JobController {
         return buildJobMap(job);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> update(@PathVariable UUID id, @RequestBody Map<String, Object> body) {
+        return jobRepo.findById(id).map(job -> {
+            try {
+                if (body.containsKey("title")) {
+                    job.setTitle((String) body.get("title"));
+                }
+                if (body.containsKey("description")) {
+                    job.setDescription((String) body.get("description"));
+                }
+                if (body.containsKey("requirements")) {
+                    Object requirementsObj = body.get("requirements");
+                    String requirementsJson = requirementsObj != null ? mapper.writeValueAsString(requirementsObj) : null;
+                    job.setRequirements(requirementsJson);
+                }
+                jobRepo.save(job);
+                return ResponseEntity.ok(buildJobMap(job));
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(Map.<String, Object>of("error", e.getMessage()));
+            }
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping
     public List<Map<String, Object>> list() {
         return jobRepo.findAll().stream()

@@ -35,6 +35,9 @@ public class JobApplication {
     @Column(columnDefinition = "TEXT")
     private String attentionEvents;    // JSON string
 
+    @Column(columnDefinition = "TEXT")
+    private String customAnswers;      // JSON string: answers to custom application questions
+
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -83,6 +86,9 @@ public class JobApplication {
 
     public String getAttentionEvents() { return attentionEvents; }
     public void setAttentionEvents(String attentionEvents) { this.attentionEvents = attentionEvents; }
+
+    public String getCustomAnswers() { return customAnswers; }
+    public void setCustomAnswers(String customAnswers) { this.customAnswers = customAnswers; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

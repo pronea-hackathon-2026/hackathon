@@ -1,28 +1,42 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users } from 'lucide-react'
+import { Users, Briefcase } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import SourceBadge from '@/components/SourceBadge'
 import { ScoreGauge } from '@/components/ScoreGauge'
-import { api, type Candidate } from '@/lib/api'
+import { api, type Candidate, type Job } from '@/lib/api'
 
 export default function CandidatesPage() {
   const navigate = useNavigate()
   const [candidates, setCandidates] = useState<Candidate[]>([])
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [activeJobId, setActiveJobId] = useState<string>('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.candidates.list().then(setCandidates).catch(console.error).finally(() => setLoading(false))
+    Promise.all([
+      api.candidates.list(),
+      api.jobs.list(),
+    ]).then(([cands, jobList]) => {
+      setCandidates(cands)
+      setJobs(jobList)
+      if (jobList.length > 0) setActiveJobId(jobList[0].id)
+    }).catch(console.error).finally(() => setLoading(false))
   }, [])
 
-  function bestMatchScore(c: Candidate) {
+  function scoreForJob(c: Candidate, jobId: string): number {
     if (!c.applications || c.applications.length === 0) return 0
-    return Math.max(...c.applications.map((a) => a.match_score ?? 0))
+    if (!jobId) return Math.max(...c.applications.map((a) => a.match_score ?? 0))
+    const app = c.applications.find((a) => a.job_id === jobId)
+    return app?.match_score ?? 0
   }
 
   function initials(name: string) {
     return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
   }
+
+  const activeJob = jobs.find((j) => j.id === activeJobId)
 
   return (
     <div className="flex flex-col h-full">
@@ -31,6 +45,22 @@ export default function CandidatesPage() {
         <h1 className="font-semibold text-lg">Candidates</h1>
         {!loading && (
           <span className="text-sm text-muted-foreground">({candidates.length})</span>
+        )}
+
+        {jobs.length > 0 && (
+          <div className="flex items-center gap-2 ml-auto">
+            <Briefcase size={15} className="text-muted-foreground shrink-0" />
+            <Select value={activeJobId} onValueChange={setActiveJobId}>
+              <SelectTrigger className="w-56 h-8 text-sm">
+                <SelectValue placeholder="Select position" />
+              </SelectTrigger>
+              <SelectContent>
+                {jobs.map((j) => (
+                  <SelectItem key={j.id} value={j.id}>{j.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
       </div>
 
@@ -55,12 +85,14 @@ export default function CandidatesPage() {
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Email</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Source</th>
                   <th className="text-center px-4 py-3 font-medium text-muted-foreground">Social Credit</th>
-                  <th className="text-center px-4 py-3 font-medium text-muted-foreground">Position Fit</th>
+                  <th className="text-center px-4 py-3 font-medium text-muted-foreground">
+                    {activeJob ? `Fit · ${activeJob.title}` : 'Position Fit'}
+                  </th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Applications</th>
                 </tr>
               </thead>
               <tbody>
-                {candidates.map((c, i) => (
+                {candidates.map((c) => (
                   <tr
                     key={c.id}
                     onClick={() => navigate(`/candidate/${c.id}`)}
@@ -85,7 +117,7 @@ export default function CandidatesPage() {
                     </td>
                     <td className="px-4 py-2">
                       <div className="flex justify-center">
-                        <ScoreGauge score={bestMatchScore(c)} label="Match" size={64} />
+                        <ScoreGauge score={scoreForJob(c, activeJobId)} label="Match" size={64} />
                       </div>
                     </td>
                     <td className="px-4 py-2 text-muted-foreground">

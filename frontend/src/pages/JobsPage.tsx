@@ -399,6 +399,7 @@ function CreateJobDialog({
   onClose: () => void
   onCreated: (job: Job) => void
 }) {
+  const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [title, setTitle] = useState('')
   const [desc, setDesc] = useState('')
@@ -427,6 +428,7 @@ function CreateJobDialog({
       aiProgress.complete()
       onCreated(job)
       handleClose()
+      navigate(`/?job=${job.id}`)
     } catch (e) {
       console.error(e)
       aiProgress.complete()

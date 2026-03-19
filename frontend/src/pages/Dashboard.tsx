@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Search, Plus, Upload, X, Briefcase, Link, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,8 +8,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import KanbanBoard from '@/components/KanbanBoard'
+import ScoringProgress from '@/components/ScoringProgress'
 import { api, type Application, type Job, type Candidate } from '@/lib/api'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+
+interface ScoringState {
+  jobId: string
+  jobTitle: string
+  total: number
+  scored: number
+  applications: Application[]
+  completed: boolean
+}
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -29,6 +39,12 @@ export default function Dashboard() {
   const [creatingJob, setCreatingJob] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [scoringState, setScoringState] = useState<ScoringState | null>(null)
+
+  // Prevents loadApplications from firing while polling handles data
+  const isScoringRef = useRef(false)
+  // Stable reference to jobs so loadApplications can read title without deps
+  const jobsRef = useRef<Job[]>([])
 
   const handleCopyLink = () => {
     if (!activeJobId) return
@@ -42,6 +58,7 @@ export default function Dashboard() {
     try {
       const j = await api.jobs.list()
       setJobs(j)
+      jobsRef.current = j
       if (j.length > 0 && !activeJobId) {
         setActiveJobId(j[0].id)
       }
@@ -53,22 +70,24 @@ export default function Dashboard() {
   }, [activeJobId])
 
   const loadApplications = useCallback(async (jobId: string) => {
-    if (!jobId) return
+    if (!jobId || isScoringRef.current) return
     setLoading(true)
     try {
-      const candidates = await api.candidates.list()
-      // Filter applications for this job
-      const apps: Application[] = []
-      for (const c of candidates) {
-        if (c.applications) {
-          for (const app of c.applications) {
-            if (app.job_id === jobId) {
-              apps.push({ ...app, candidates: c })
-            }
-          }
-        }
+      const progress = await api.jobs.progress(jobId)
+      setApplications(progress.applications)
+      // If backend is still scoring, start the progress banner automatically
+      if (progress.total > 0 && progress.scored < progress.total) {
+        const title = jobsRef.current.find((j) => j.id === jobId)?.title ?? ''
+        isScoringRef.current = true
+        setScoringState({
+          jobId,
+          jobTitle: title,
+          total: progress.total,
+          scored: progress.scored,
+          applications: progress.applications,
+          completed: false,
+        })
       }
-      setApplications(apps)
     } catch (e) {
       console.error(e)
     } finally {
@@ -81,11 +100,45 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    if (activeJobId) loadApplications(activeJobId)
+    if (activeJobId && !isScoringRef.current) loadApplications(activeJobId)
   }, [activeJobId])
 
+  // Polling loop — runs whenever a new job's scoring starts
+  useEffect(() => {
+    if (!scoringState) return
+    const { jobId } = scoringState
+    let stopped = false
+
+    const poll = async () => {
+      if (stopped) return
+      try {
+        const progress = await api.jobs.progress(jobId)
+        setScoringState((prev) =>
+          prev ? { ...prev, total: progress.total, scored: progress.scored, applications: progress.applications } : null,
+        )
+        setApplications(progress.applications)
+
+        if (progress.total > 0 && progress.scored >= progress.total) {
+          stopped = true
+          isScoringRef.current = false
+          setScoringState((prev) => (prev ? { ...prev, completed: true } : null))
+          setTimeout(() => setScoringState(null), 2500)
+        }
+      } catch {
+        // silent — fallback data already handled in api layer
+      }
+    }
+
+    poll()
+    const interval = setInterval(poll, 1200)
+    return () => {
+      stopped = true
+      clearInterval(interval)
+    }
+  }, [scoringState?.jobId]) // only restart when a different job starts scoring
+
   const handleStatusChange = async (appId: string, newStatus: string) => {
-    setApplications((prev) => prev.map((a) => a.id === appId ? { ...a, status: newStatus } : a))
+    setApplications((prev) => prev.map((a) => (a.id === appId ? { ...a, status: newStatus } : a)))
     try {
       await api.applications.updateStatus(appId, newStatus)
     } catch (e) {
@@ -114,9 +167,20 @@ export default function Dashboard() {
       const job = await api.jobs.create(newJobTitle, newJobDesc)
       setJobs((prev) => [job, ...prev])
       setActiveJobId(job.id)
+      setApplications([])
       setShowNewJob(false)
       setNewJobTitle('')
       setNewJobDesc('')
+      // Start polling — block normal loadApplications until scoring is done
+      isScoringRef.current = true
+      setScoringState({
+        jobId: job.id,
+        jobTitle: job.title,
+        total: 0,
+        scored: 0,
+        applications: [],
+        completed: false,
+      })
     } catch (e) {
       console.error(e)
     } finally {
@@ -252,8 +316,20 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Scoring progress banner */}
+      {scoringState && (
+        <div className="pt-4 animate-in fade-in-0 slide-in-from-top-2 duration-400">
+          <ScoringProgress
+            jobTitle={scoringState.jobTitle}
+            total={scoringState.total}
+            scored={scoringState.scored}
+            applications={scoringState.applications}
+          />
+        </div>
+      )}
+
       {/* Kanban board */}
-      <div className="flex-1 overflow-x-auto p-6">
+      <div className="flex-1 overflow-x-auto p-6 pt-4">
         {jobsLoading ? (
           <KanbanBoard applications={[]} onStatusChange={handleStatusChange} loading={true} />
         ) : jobs.length === 0 ? (
@@ -270,7 +346,7 @@ export default function Dashboard() {
           <KanbanBoard
             applications={applications}
             onStatusChange={handleStatusChange}
-            loading={loading}
+            loading={loading && !scoringState}
           />
         )}
       </div>

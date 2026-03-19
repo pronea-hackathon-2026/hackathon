@@ -45,7 +45,9 @@ function DroppableColumn({
             </div>
           ) : (
             applications.map((app) => (
-              <CandidateCard key={app.id} application={app} />
+              <div key={app.id} className="animate-in fade-in-0 slide-in-from-bottom-3 duration-300">
+                <CandidateCard application={app} />
+              </div>
             ))
           )}
         </div>

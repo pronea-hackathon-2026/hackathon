@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, List, LayoutGrid, Search, Upload, X, Link, Check, Copy,
+  ArrowLeft, List, LayoutGrid, Search, Upload, X, Link, Check, Copy, UserPlus,
 } from 'lucide-react'
+import SimulateCVModal from '@/components/SimulateCVModal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -46,6 +47,7 @@ export default function JobCandidatesPage() {
   const [linkCopied, setLinkCopied] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [showAddCandidate, setShowAddCandidate] = useState(false)
 
   const isScoringRef = useRef(false)
   const isFirstLoadRef = useRef(true)
@@ -233,6 +235,10 @@ export default function JobCandidatesPage() {
           <Upload size={14} />
           Upload CV
         </Button>
+        <Button size="sm" onClick={() => setShowAddCandidate(true)}>
+          <UserPlus size={14} />
+          Add Candidate
+        </Button>
       </div>
 
       {/* Search bar */}
@@ -402,6 +408,19 @@ export default function JobCandidatesPage() {
           )
         )}
       </div>
+
+      {/* Add Candidate / Simulate CV */}
+      <SimulateCVModal
+        open={showAddCandidate}
+        onClose={() => setShowAddCandidate(false)}
+        jobId={jobId ?? 'mock-job-1'}
+        onUploadClick={() => setShowUpload(true)}
+        onAdd={() => {
+          const jId = jobId ?? 'mock-job-1'
+          api.candidates.addSimulated(jId)
+          api.jobs.getApplications(jId).then(setApplications)
+        }}
+      />
 
       {/* Upload CV Dialog */}
       <Dialog open={showUpload} onOpenChange={setShowUpload}>

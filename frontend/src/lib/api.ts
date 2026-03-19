@@ -569,6 +569,78 @@ export const api = {
           .map((c) => ({ ...c, search_score: Math.floor(70 + Math.random() * 25) }))
       )
     },
+    addSimulated: (jobId: string): Application => {
+      const id = `mock-c-sim-${Date.now()}`
+      const appId = `mock-a-sim-${Date.now()}`
+      const profiles: Record<string, { name: string; email: string; title: string; company: string; location: string; credibility: number; match: number; skills: string[]; languages: string[]; education: { degree: string; institution: string; year: string }; experience: { company: string; role: string; start_date: string; end_date: string | null; duration_months: number; description: string }[] }> = {
+        'mock-job-1': {
+          name: 'Marcus Chen', email: 'marcus.chen@gmail.com', title: 'Senior Software Engineer', company: 'Stripe', location: 'San Francisco, CA',
+          credibility: 91, match: 94,
+          skills: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'GraphQL', 'Redis', 'Docker', 'AWS', 'Kafka'],
+          languages: ['English', 'Mandarin'],
+          education: { degree: 'B.S. Computer Science', institution: 'UC Berkeley', year: '2016' },
+          experience: [
+            { company: 'Stripe', role: 'Senior Software Engineer', start_date: '2021-03', end_date: null, duration_months: 27, description: 'Led rebuild of payment reconciliation pipeline (2M tx/day). 97% error reduction.' },
+            { company: 'Airbnb', role: 'Software Engineer', start_date: '2018-04', end_date: '2021-02', duration_months: 34, description: 'Core booking flow. API versioning layer, 23% booking error reduction.' },
+          ],
+        },
+        'mock-job-2': {
+          name: 'Elena Vasquez', email: 'elena.vasquez@me.com', title: 'Senior Product Designer', company: 'Figma', location: 'New York, NY',
+          credibility: 88, match: 91,
+          skills: ['Figma', 'User Research', 'Design Systems', 'Prototyping', 'Motion Design', 'Framer', 'HTML/CSS', 'Tokens Studio'],
+          languages: ['English', 'Spanish'],
+          education: { degree: 'BFA Graphic Design', institution: 'Rhode Island School of Design', year: '2017' },
+          experience: [
+            { company: 'Figma', role: 'Senior Product Designer', start_date: '2021-02', end_date: null, duration_months: 26, description: 'Owned component properties panel redesign. 68% discoverability improvement.' },
+            { company: 'Adobe', role: 'UX Designer', start_date: '2017-07', end_date: '2019-02', duration_months: 19, description: 'XD and Photoshop feature design. Ran usability studies.' },
+          ],
+        },
+        'mock-job-3': {
+          name: 'David Park', email: 'david.park@cornell.edu', title: 'Research Engineer', company: 'Google DeepMind', location: 'London, UK',
+          credibility: 85, match: 88,
+          skills: ['Python', 'PyTorch', 'LLMs', 'MLOps', 'Kubernetes', 'Spark', 'Ray', 'RLHF', 'TensorFlow'],
+          languages: ['English', 'Korean'],
+          education: { degree: 'Ph.D. Computer Science (ML)', institution: 'Cornell University', year: '2019' },
+          experience: [
+            { company: 'Google DeepMind', role: 'Research Engineer', start_date: '2022-01', end_date: null, duration_months: 26, description: 'LLM pretraining infrastructure and RLHF pipelines. 2 published papers.' },
+            { company: 'Meta AI', role: 'ML Engineer', start_date: '2019-06', end_date: '2021-12', duration_months: 30, description: 'Recommendation ML pipelines at billion-user scale.' },
+          ],
+        },
+      }
+      const p = profiles[jobId] ?? profiles['mock-job-1']
+
+      const newCandidate: Candidate = {
+        id, name: p.name, email: p.email, source: 'upload', raw_text: null,
+        credibility_score: p.credibility, embedding: null, created_at: new Date().toISOString(),
+        applications: [],
+        parsed: {
+          name: p.name, email: p.email, phone: null, linkedin_url: null,
+          skills: p.skills, languages: p.languages,
+          education: [p.education],
+          experience: p.experience,
+          gaps: [], red_flags: [],
+        },
+      }
+
+      const newApp: Application = {
+        id: appId, candidate_id: id, job_id: jobId,
+        match_score: p.match, credibility_score: p.credibility,
+        interview_score: 0, overall_score: p.match,
+        status: 'inbox',
+        interview_date: null, interview_room_url: null, video_url: null,
+        transcript: null, analysis: null, attention_events: null, custom_answers: null,
+        created_at: new Date().toISOString(),
+        candidates: newCandidate,
+      }
+
+      newCandidate.applications!.push(newApp)
+      _candidates.push(newCandidate)
+      _candidateMap.set(id, newCandidate)
+      _applications.push(newApp)
+      _appMap.set(appId, newApp)
+
+      return newApp
+    },
   },
 
   jobs: {

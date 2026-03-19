@@ -78,17 +78,27 @@ export default function CandidatesPage() {
           </div>
         ) : (
           <div className="rounded-lg border border-border overflow-hidden">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-fixed">
+              <colgroup>
+                <col className="w-[30%]" />
+                <col className="w-[22%]" />
+                <col className="w-[10%]" />
+                <col className="w-[14%]" />
+                <col className="w-[14%]" />
+                <col className="w-[10%]" />
+              </colgroup>
               <thead>
                 <tr className="border-b border-border bg-card/50">
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Candidate</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Email</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Source</th>
                   <th className="text-center px-4 py-3 font-medium text-muted-foreground">Social Credit</th>
-                  <th className="text-center px-4 py-3 font-medium text-muted-foreground">
-                    {activeJob ? `Fit · ${activeJob.title}` : 'Position Fit'}
+                  <th className="text-center px-4 py-3 font-medium text-muted-foreground overflow-hidden">
+                    <span className="block truncate" title={activeJob?.title}>
+                      {activeJob ? `Fit · ${activeJob.title}` : 'Position Fit'}
+                    </span>
                   </th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Applications</th>
+                  <th className="text-center px-4 py-3 font-medium text-muted-foreground">Applications</th>
                 </tr>
               </thead>
               <tbody>
@@ -120,7 +130,7 @@ export default function CandidatesPage() {
                         <ScoreGauge score={scoreForJob(c, activeJobId)} label="Match" size={64} />
                       </div>
                     </td>
-                    <td className="px-4 py-2 text-muted-foreground">
+                    <td className="px-4 py-2 text-muted-foreground text-center">
                       {c.applications?.length ?? 0} job{(c.applications?.length ?? 0) !== 1 ? 's' : ''}
                     </td>
                   </tr>

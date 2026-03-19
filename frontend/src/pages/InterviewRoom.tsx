@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronRight, Mic, MicOff, Eye, EyeOff, Copy, Check, ExternalLink } from 'lucide-react'
+import { ChevronRight, Video, VideoOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api, type Application, type AttentionEvent } from '@/lib/api'
@@ -15,14 +15,39 @@ export default function InterviewRoom() {
   const [questions, setQuestions] = useState<string[]>([])
   const [currentQ, setCurrentQ] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [ended, setEnded] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [cameraError, setCameraError] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
   const attentionEventsRef = useRef<AttentionEvent[]>([])
   const transcriptRef = useRef<string[]>([])
   const startTimeRef = useRef(Date.now())
-  const gazeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const aiProgress = useAIProgress()
+
+  // Initialize camera
+  useEffect(() => {
+    const startCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: true,
+        })
+        streamRef.current = stream
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+        }
+      } catch (err) {
+        console.error('Camera access error:', err)
+        setCameraError(true)
+      }
+    }
+    startCamera()
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
 
   // Track tab switches and window blur
   useEffect(() => {
@@ -96,122 +121,101 @@ export default function InterviewRoom() {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="space-y-4 w-full max-w-2xl p-8">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-64 w-full" />
+      <div className="h-screen w-screen bg-black flex items-center justify-center">
+        <div className="space-y-4 w-full max-w-md p-8">
+          <Skeleton className="h-8 w-48 bg-white/10" />
+          <Skeleton className="h-32 w-full bg-white/10" />
         </div>
       </div>
     )
   }
 
-  if (!app) return <div className="p-6 text-muted-foreground">Application not found.</div>
-
-  const roomUrl = app.interview_room_url
+  if (!app) return <div className="h-screen w-screen bg-black flex items-center justify-center text-white/60">Application not found.</div>
 
   return (
-    <div className="flex h-full gap-0">
-      {/* Left: Video call */}
-      <div className="flex-1 bg-black relative">
-        {roomUrl ? (
-          <iframe
-            src={roomUrl}
-            title="Interview Room"
-            className="w-full h-full border-0"
-            allow="camera; microphone; fullscreen; display-capture"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-white/60">
-            <p>No room URL configured</p>
+    <div className="relative h-screen w-screen overflow-hidden bg-black">
+      {/* Full-screen camera background */}
+      <div className="absolute inset-0">
+        {cameraError ? (
+          <div className="h-full w-full flex flex-col items-center justify-center text-white/60 gap-4">
+            <VideoOff size={64} className="text-white/40" />
+            <p className="text-lg">Camera access denied</p>
+            <p className="text-sm">Please enable camera access to continue</p>
           </div>
+        ) : (
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="h-full w-full object-cover mirror"
+            style={{ transform: 'scaleX(-1)' }}
+          />
         )}
       </div>
 
-      {/* Right: Questions panel */}
-      <div className="w-96 flex flex-col border-l border-border bg-card">
-        {/* Share link bar */}
-        {roomUrl && (
-          <div className="px-4 py-3 border-b border-border bg-primary/5 flex items-center gap-2">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground mb-0.5">Candidate join link</p>
-              <p className="text-xs font-mono truncate text-foreground">{roomUrl}</p>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="shrink-0"
-              onClick={() => {
-                navigator.clipboard.writeText(roomUrl)
-                setCopied(true)
-                setTimeout(() => setCopied(false), 2000)
-              }}
-            >
-              {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-              {copied ? 'Copied!' : 'Copy'}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="shrink-0 px-2"
-              onClick={() => window.open(roomUrl, '_blank')}
-            >
-              <ExternalLink size={13} />
-            </Button>
-          </div>
-        )}
+      {/* Subtle gradient overlay for better text readability */}
+      <div className="absolute inset-0 bg-gradient-to-l from-black/50 via-transparent to-transparent pointer-events-none" />
 
-        <div className="p-4 border-b border-border">
-          <h2 className="font-semibold">Interview Questions</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Question {currentQ + 1} of {questions.length}
-          </p>
+      {/* Floating question box - right side */}
+      <Card className="absolute right-6 top-1/2 -translate-y-1/2 w-[420px] max-h-[80vh] bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl shadow-2xl border-0 overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-lg">Interview</h2>
+            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400">
+              Question {currentQ + 1} of {questions.length}
+            </Badge>
+          </div>
         </div>
 
-        {/* Current question - large display */}
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <Badge variant="default">Current</Badge>
+        {/* Current question */}
+        <div className="px-6 py-8">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
+              {currentQ + 1}
+            </div>
+            <Badge variant="default" className="bg-primary/10 text-primary border-0">
+              Current Question
+            </Badge>
           </div>
-          <p className="text-lg font-medium leading-relaxed">
+          <p className="text-xl font-medium leading-relaxed text-zinc-900 dark:text-zinc-100">
             {questions[currentQ]}
           </p>
         </div>
 
-        {/* Upcoming questions */}
-        <div className="flex-1 overflow-auto p-4">
-          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-3">Upcoming</p>
-          <div className="space-y-2">
-            {questions.slice(currentQ + 1).map((q, i) => (
-              <div key={i} className="p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground">
-                <span className="text-xs font-semibold mr-2">Q{currentQ + 2 + i}</span>
-                {q}
-              </div>
-            ))}
+        {/* Controls */}
+        <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+          <div className="space-y-3">
+            {currentQ < questions.length - 1 ? (
+              <Button className="w-full h-12 text-base" onClick={handleNextQuestion}>
+                <ChevronRight size={20} className="mr-2" />
+                Next Question
+              </Button>
+            ) : (
+              <Button
+                className="w-full h-12 text-base"
+                variant="destructive"
+                onClick={handleEndInterview}
+                disabled={submitting}
+              >
+                {submitting ? 'Submitting…' : 'End Interview'}
+              </Button>
+            )}
+            <p className="text-xs text-muted-foreground text-center">
+              Look at the camera while answering
+            </p>
           </div>
         </div>
+      </Card>
 
-        {/* Controls */}
-        <div className="p-4 border-t border-border space-y-2">
-          {!ended && currentQ < questions.length - 1 && (
-            <Button className="w-full" onClick={handleNextQuestion}>
-              <ChevronRight size={16} />
-              Next Question
-            </Button>
-          )}
-          {(currentQ === questions.length - 1 || ended) && (
-            <Button
-              className="w-full"
-              variant="destructive"
-              onClick={handleEndInterview}
-              disabled={submitting}
-            >
-              {submitting ? 'Submitting…' : 'End Interview'}
-            </Button>
-          )}
-          <p className="text-xs text-muted-foreground text-center">
-            Your attention is being monitored during this interview
-          </p>
-        </div>
+      {/* Recording indicator */}
+      <div className="absolute top-6 left-6 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full">
+        <span className="relative flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+        </span>
+        <span className="text-white text-sm font-medium">Recording</span>
       </div>
     </div>
   )

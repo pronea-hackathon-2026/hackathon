@@ -59,8 +59,7 @@ export default function CandidateDetail() {
     setInviting(latestApp.id)
     try {
       await api.applications.updateStatus(latestApp.id, 'shortlisted')
-      const res = await api.interviews.invite(latestApp.id)
-      alert(`Interview room created:\n${res.room_url}`)
+      await api.interviews.invite(latestApp.id)
       navigate(`/interview/${latestApp.id}`)
     } catch (e) {
       console.error(e)

@@ -38,6 +38,11 @@ public class JobApplication {
     @Column(columnDefinition = "TEXT")
     private String customAnswers;      // JSON string: answers to custom application questions
 
+    @Column(columnDefinition = "TEXT")
+    private String questions;          // JSON array of question strings
+
+    private Integer currentQuestionIndex = 0;
+
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -89,6 +94,12 @@ public class JobApplication {
 
     public String getCustomAnswers() { return customAnswers; }
     public void setCustomAnswers(String customAnswers) { this.customAnswers = customAnswers; }
+
+    public String getQuestions() { return questions; }
+    public void setQuestions(String questions) { this.questions = questions; }
+
+    public Integer getCurrentQuestionIndex() { return currentQuestionIndex; }
+    public void setCurrentQuestionIndex(Integer currentQuestionIndex) { this.currentQuestionIndex = currentQuestionIndex; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

@@ -1,8 +1,7 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from '@/components/Sidebar'
-import Dashboard from '@/pages/Dashboard'
-import CandidatesPage from '@/pages/CandidatesPage'
 import JobsPage from '@/pages/JobsPage'
+import JobCandidatesPage from '@/pages/JobCandidatesPage'
 import CandidateDetail from '@/pages/CandidateDetail'
 import InterviewRoom from '@/pages/InterviewRoom'
 import VideoReview from '@/pages/VideoReview'
@@ -27,9 +26,9 @@ export default function App() {
             <Sidebar />
             <main className="flex-1 overflow-auto">
               <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/candidates" element={<CandidatesPage />} />
+                <Route path="/" element={<Navigate to="/jobs" replace />} />
                 <Route path="/jobs" element={<JobsPage />} />
+                <Route path="/jobs/:jobId/candidates" element={<JobCandidatesPage />} />
                 <Route path="/candidate/:id" element={<CandidateDetail />} />
                 <Route path="/review/:applicationId" element={<VideoReview />} />
               </Routes>
@@ -40,3 +39,4 @@ export default function App() {
     </AIProgressProvider>
   )
 }
+

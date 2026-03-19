@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAIProgress } from '@/lib/ai-progress'
-import { Briefcase, Plus, LayoutDashboard, Trash2, X, ChevronRight, ChevronLeft, CheckCircle2, Copy, Check, Link, Pencil } from 'lucide-react'
+import { Briefcase, Plus, Trash2, X, ChevronRight, ChevronLeft, CheckCircle2, Copy, Check, Link, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -924,12 +924,15 @@ export default function JobsPage() {
 
                   return (
                     <tr key={j.id} className="border-b border-border last:border-0 hover:bg-accent/50 transition-colors">
-                      <td className="px-4 py-3">
+                      <td
+                        className="px-4 py-3 cursor-pointer"
+                        onClick={() => navigate(`/jobs/${j.id}/candidates`)}
+                      >
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded bg-primary/20 flex items-center justify-center shrink-0">
                             <Briefcase size={13} className="text-primary" />
                           </div>
-                          <span className="font-medium">{j.title}</span>
+                          <span className="font-medium hover:underline">{j.title}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -975,10 +978,6 @@ export default function JobsPage() {
                           >
                             {copiedJobId === j.id ? <Check size={13} /> : <Copy size={13} />}
                             {copiedJobId === j.id ? 'Copied!' : 'Copy Link'}
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => navigate(`/?job=${j.id}`)}>
-                            <LayoutDashboard size={13} />
-                            Dashboard
                           </Button>
                           <Button
                             size="sm"

@@ -1,11 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Users, Briefcase } from 'lucide-react'
+import { Briefcase } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/candidates', icon: Users, label: 'Candidates' },
   { to: '/jobs', icon: Briefcase, label: 'Jobs' },
 ]
 
@@ -21,7 +19,7 @@ export default function Sidebar() {
         </div>
 
         {navItems.map(({ to, icon: Icon, label }) => {
-          const isActive = to === '/' ? location.pathname === '/' : location.pathname.startsWith(to)
+          const isActive = location.pathname.startsWith(to)
           return (
             <Tooltip key={to}>
               <TooltipTrigger asChild>
@@ -45,3 +43,4 @@ export default function Sidebar() {
     </TooltipProvider>
   )
 }
+

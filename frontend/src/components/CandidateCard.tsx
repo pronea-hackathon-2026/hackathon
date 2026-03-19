@@ -46,7 +46,7 @@ export default function CandidateCard({ application, onCandidateClick }: Candida
               <GripVertical size={14} />
             </div>
 
-            <CandidateAvatar candidateId={candidate.id} name={candidate.name} className="h-8 w-8 shrink-0" />
+            <CandidateAvatar candidateId={candidate.id} name={candidate.name} email={candidate.email} className="h-8 w-8 shrink-0" />
 
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">

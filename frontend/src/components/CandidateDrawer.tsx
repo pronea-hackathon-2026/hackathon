@@ -129,6 +129,7 @@ export default function CandidateDrawer({ candidateId, onClose }: Props) {
                   <CandidateAvatar
                     candidateId={candidate!.id}
                     name={candidate!.name}
+                    email={candidate!.email}
                     className="h-9 w-9 shrink-0"
                     fallbackClassName="bg-slate-100 text-slate-600"
                   />
@@ -196,6 +197,7 @@ export default function CandidateDrawer({ candidateId, onClose }: Props) {
                     <CandidateAvatar
                       candidateId={candidate!.id}
                       name={candidate!.name}
+                      email={candidate!.email}
                       className="h-12 w-12 shrink-0"
                       fallbackClassName="bg-slate-100 text-slate-600 text-base"
                     />

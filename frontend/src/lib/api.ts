@@ -287,6 +287,115 @@ const MOCK_JOBS: Job[] = [
 
 // ─── Mock Candidates ───────────────────────────────────────────────────────────
 
+// ─── Imported Candidates (added via Import Modal) ──────────────────────────────
+
+const IMPORTED_CANDIDATES_DATA: {
+  name: string
+  email: string
+  skills: string[]
+  experience: { company: string; role: string; start_date: string; end_date: string | null; duration_months: number; description: string }[]
+  education: { degree: string; institution: string; year: string }
+  credibility: number
+  languages: string[]
+}[] = [
+  {
+    name: 'Sarah Mitchell',
+    email: 'sarah.m@example.com',
+    skills: ['React', 'TypeScript', 'Node.js', 'GraphQL', 'AWS', 'Docker', 'PostgreSQL'],
+    experience: [
+      { company: 'Netflix', role: 'Senior Software Engineer', start_date: '2021-06', end_date: null, duration_months: 33, description: 'Led streaming quality dashboard team. Built real-time metrics pipeline processing 50M events/day.' },
+      { company: 'Dropbox', role: 'Software Engineer', start_date: '2018-09', end_date: '2021-05', duration_months: 32, description: 'File sync engine improvements. Reduced sync conflicts by 34%.' },
+    ],
+    education: { degree: 'B.S. Computer Science', institution: 'Stanford University', year: '2018' },
+    credibility: 89,
+    languages: ['English'],
+  },
+  {
+    name: 'James Rodriguez',
+    email: 'j.rodriguez@example.com',
+    skills: ['Python', 'Django', 'React', 'PostgreSQL', 'Redis', 'Kubernetes', 'AWS'],
+    experience: [
+      { company: 'Instacart', role: 'Staff Engineer', start_date: '2020-03', end_date: null, duration_months: 48, description: 'Inventory management platform. Reduced out-of-stock incidents by 28%.' },
+      { company: 'Lyft', role: 'Senior Software Engineer', start_date: '2017-01', end_date: '2020-02', duration_months: 37, description: 'Pricing engine team. Built surge pricing algorithm improvements.' },
+    ],
+    education: { degree: 'M.S. Computer Science', institution: 'MIT', year: '2016' },
+    credibility: 92,
+    languages: ['English', 'Spanish'],
+  },
+  {
+    name: 'Emily Zhang',
+    email: 'emily.zhang@example.com',
+    skills: ['Figma', 'User Research', 'Design Systems', 'Prototyping', 'Framer', 'Motion Design'],
+    experience: [
+      { company: 'Notion', role: 'Senior Product Designer', start_date: '2021-01', end_date: null, duration_months: 38, description: 'Led database views redesign. Improved user task completion by 42%.' },
+      { company: 'Slack', role: 'Product Designer', start_date: '2018-06', end_date: '2020-12', duration_months: 30, description: 'Channel organization and search experience design.' },
+    ],
+    education: { degree: 'BFA Design', institution: 'Parsons School of Design', year: '2018' },
+    credibility: 86,
+    languages: ['English', 'Mandarin'],
+  },
+  {
+    name: 'Michael Okonkwo',
+    email: 'm.okonkwo@example.com',
+    skills: ['Python', 'PyTorch', 'TensorFlow', 'MLOps', 'Kubernetes', 'LLMs', 'Ray'],
+    experience: [
+      { company: 'OpenAI', role: 'Research Engineer', start_date: '2022-03', end_date: null, duration_months: 24, description: 'GPT fine-tuning infrastructure. Built evaluation framework for instruction following.' },
+      { company: 'Google Brain', role: 'ML Engineer', start_date: '2019-08', end_date: '2022-02', duration_months: 30, description: 'Large-scale model training infrastructure. JAX and TPU optimization.' },
+    ],
+    education: { degree: 'Ph.D. Machine Learning', institution: 'Carnegie Mellon University', year: '2019' },
+    credibility: 94,
+    languages: ['English'],
+  },
+  {
+    name: 'Anna Kowalski',
+    email: 'anna.k@example.com',
+    skills: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'GraphQL', 'Docker', 'Terraform'],
+    experience: [
+      { company: 'Vercel', role: 'Software Engineer', start_date: '2021-09', end_date: null, duration_months: 30, description: 'Edge functions platform. Reduced cold start times by 60%.' },
+      { company: 'Cloudflare', role: 'Junior Software Engineer', start_date: '2019-06', end_date: '2021-08', duration_months: 26, description: 'Workers runtime improvements and developer tooling.' },
+    ],
+    education: { degree: 'B.S. Computer Engineering', institution: 'University of Warsaw', year: '2019' },
+    credibility: 81,
+    languages: ['English', 'Polish'],
+  },
+  {
+    name: 'David Chen',
+    email: 'd.chen@example.com',
+    skills: ['Figma', 'User Research', 'Design Systems', 'Accessibility', 'HTML/CSS', 'Prototyping'],
+    experience: [
+      { company: 'Stripe', role: 'Product Designer', start_date: '2020-04', end_date: null, duration_months: 47, description: 'Payment forms and checkout experience. Led accessibility initiative achieving WCAG 2.1 AA.' },
+      { company: 'Square', role: 'UX Designer', start_date: '2017-08', end_date: '2020-03', duration_months: 31, description: 'Point of sale interface design. Conducted 100+ merchant interviews.' },
+    ],
+    education: { degree: 'B.Des Interaction Design', institution: 'California College of the Arts', year: '2017' },
+    credibility: 84,
+    languages: ['English', 'Cantonese'],
+  },
+  {
+    name: 'Rachel Kim',
+    email: 'r.kim@example.com',
+    skills: ['Python', 'PyTorch', 'LLMs', 'NLP', 'Data Pipelines', 'Spark', 'MLOps'],
+    experience: [
+      { company: 'Anthropic', role: 'ML Engineer', start_date: '2022-06', end_date: null, duration_months: 21, description: 'Constitutional AI training pipelines. Built RLHF data collection infrastructure.' },
+      { company: 'Hugging Face', role: 'Research Engineer', start_date: '2020-01', end_date: '2022-05', duration_months: 28, description: 'Transformers library core contributor. Implemented 15+ model architectures.' },
+    ],
+    education: { degree: 'M.S. NLP', institution: 'University of Washington', year: '2019' },
+    credibility: 90,
+    languages: ['English', 'Korean'],
+  },
+  {
+    name: 'Thomas Müller',
+    email: 't.muller@example.com',
+    skills: ['React', 'TypeScript', 'Go', 'PostgreSQL', 'Kubernetes', 'gRPC', 'Redis'],
+    experience: [
+      { company: 'Zalando', role: 'Staff Engineer', start_date: '2019-03', end_date: null, duration_months: 60, description: 'Checkout platform architecture. Handles 500k orders/day across 25 markets.' },
+      { company: 'N26', role: 'Senior Software Engineer', start_date: '2016-07', end_date: '2019-02', duration_months: 31, description: 'Core banking backend. Built real-time transaction processing system.' },
+    ],
+    education: { degree: 'Diplom-Informatiker', institution: 'TU Berlin', year: '2016' },
+    credibility: 87,
+    languages: ['English', 'German'],
+  },
+]
+
 const _candidates: Candidate[] = [
   {
     id: 'mock-c-1', name: 'Marcus Chen', email: 'marcus.chen@gmail.com', source: 'linkedin',
@@ -463,6 +572,143 @@ const _candidates: Candidate[] = [
       red_flags: ['No MLOps or production model deployment experience', 'No LLM experience — significant gap for this role', '5-month recent gap with no explanation'],
     },
   },
+  // ─── Additional candidates with varied statuses ────────────────────────────────
+  {
+    id: 'mock-c-11', name: 'Kevin Liu', email: 'kevin.liu@gmail.com', source: 'linkedin',
+    raw_text: null, credibility_score: 86, embedding: null, created_at: '2025-01-18T09:00:00Z',
+    applications: [],
+    parsed: {
+      name: 'Kevin Liu', email: 'kevin.liu@gmail.com', phone: '+1 650 555 0142',
+      linkedin_url: 'https://linkedin.com/in/kevin-liu-eng',
+      skills: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'GraphQL', 'AWS', 'Docker', 'Kubernetes'],
+      languages: ['English', 'Mandarin'],
+      education: [{ degree: 'M.S. Computer Science', institution: 'Stanford University', year: '2017' }],
+      experience: [
+        { company: 'Pinterest', role: 'Staff Software Engineer', start_date: '2020-06', end_date: null, duration_months: 45, description: 'Led ads delivery infrastructure team. Built real-time bidding system processing 1M+ requests/sec.' },
+        { company: 'Twitter', role: 'Senior Software Engineer', start_date: '2017-08', end_date: '2020-05', duration_months: 33, description: 'Timeline ranking algorithms and API infrastructure. Improved latency by 40%.' },
+      ],
+      gaps: [], red_flags: [],
+    },
+  },
+  {
+    id: 'mock-c-12', name: 'Sofia Martinez', email: 'sofia.martinez@outlook.com', source: 'referral',
+    raw_text: null, credibility_score: 83, embedding: null, created_at: '2025-01-22T11:00:00Z',
+    applications: [],
+    parsed: {
+      name: 'Sofia Martinez', email: 'sofia.martinez@outlook.com', phone: '+34 612 345 678',
+      linkedin_url: 'https://linkedin.com/in/sofia-martinez-dev',
+      skills: ['React', 'TypeScript', 'Vue.js', 'Node.js', 'PostgreSQL', 'Redis', 'Docker'],
+      languages: ['English', 'Spanish', 'Portuguese'],
+      education: [{ degree: 'B.S. Computer Engineering', institution: 'Universidad Politécnica de Madrid', year: '2018' }],
+      experience: [
+        { company: 'Spotify', role: 'Senior Software Engineer', start_date: '2021-03', end_date: null, duration_months: 36, description: 'Podcast discovery team. Built recommendation engine serving 200M+ users.' },
+        { company: 'Cabify', role: 'Software Engineer', start_date: '2018-09', end_date: '2021-02', duration_months: 29, description: 'Real-time dispatch system for ride-hailing. Reduced wait times by 25%.' },
+      ],
+      gaps: [], red_flags: [],
+    },
+  },
+  {
+    id: 'mock-c-13', name: 'Nathan Brooks', email: 'nathan.brooks@me.com', source: 'upload',
+    raw_text: null, credibility_score: 78, embedding: null, created_at: '2025-02-08T14:00:00Z',
+    applications: [],
+    parsed: {
+      name: 'Nathan Brooks', email: 'nathan.brooks@me.com', phone: '+1 312 555 0198',
+      linkedin_url: 'https://linkedin.com/in/nathan-brooks-fullstack',
+      skills: ['React', 'TypeScript', 'Python', 'Django', 'PostgreSQL', 'AWS', 'Terraform'],
+      languages: ['English'],
+      education: [{ degree: 'B.S. Computer Science', institution: 'University of Illinois', year: '2019' }],
+      experience: [
+        { company: 'Grubhub', role: 'Software Engineer', start_date: '2020-08', end_date: null, duration_months: 43, description: 'Order management platform. Built merchant dashboard used by 100k+ restaurants.' },
+        { company: 'Groupon', role: 'Junior Software Engineer', start_date: '2019-06', end_date: '2020-07', duration_months: 13, description: 'Deal discovery features and A/B testing infrastructure.' },
+      ],
+      gaps: [], red_flags: [],
+    },
+  },
+  {
+    id: 'mock-c-14', name: 'Maya Patel', email: 'maya.patel@gmail.com', source: 'linkedin',
+    raw_text: null, credibility_score: 90, embedding: null, created_at: '2025-02-01T10:00:00Z',
+    applications: [],
+    parsed: {
+      name: 'Maya Patel', email: 'maya.patel@gmail.com', phone: '+1 415 555 0176',
+      linkedin_url: 'https://linkedin.com/in/maya-patel-design',
+      skills: ['Figma', 'User Research', 'Design Systems', 'Prototyping', 'Motion Design', 'Framer', 'After Effects'],
+      languages: ['English', 'Hindi'],
+      education: [{ degree: 'M.Des Interaction Design', institution: 'School of Visual Arts', year: '2018' }],
+      experience: [
+        { company: 'Airbnb', role: 'Staff Product Designer', start_date: '2020-09', end_date: null, duration_months: 42, description: 'Led guest experience redesign. Increased booking completion by 18%.' },
+        { company: 'Uber', role: 'Senior Product Designer', start_date: '2018-03', end_date: '2020-08', duration_months: 29, description: 'Driver app redesign. Reduced onboarding time by 35%.' },
+      ],
+      gaps: [], red_flags: [],
+    },
+  },
+  {
+    id: 'mock-c-15', name: 'Alex Thompson', email: 'alex.thompson@proton.me', source: 'referral',
+    raw_text: null, credibility_score: 72, embedding: null, created_at: '2025-02-14T09:00:00Z',
+    applications: [],
+    parsed: {
+      name: 'Alex Thompson', email: 'alex.thompson@proton.me', phone: '+44 7911 123456',
+      linkedin_url: 'https://linkedin.com/in/alex-thompson-ux',
+      skills: ['Figma', 'Sketch', 'User Research', 'Prototyping', 'Design Systems', 'HTML/CSS'],
+      languages: ['English'],
+      education: [{ degree: 'BA Graphic Design', institution: 'Central Saint Martins', year: '2019' }],
+      experience: [
+        { company: 'Monzo', role: 'Product Designer', start_date: '2021-06', end_date: null, duration_months: 33, description: 'Savings and budgeting features. Led design for Premium tier launch.' },
+        { company: 'Deliveroo', role: 'UX Designer', start_date: '2019-09', end_date: '2021-05', duration_months: 20, description: 'Restaurant partner portal redesign. Improved task completion by 28%.' },
+      ],
+      gaps: [], red_flags: [],
+    },
+  },
+  {
+    id: 'mock-c-16', name: 'Jennifer Wu', email: 'jennifer.wu@berkeley.edu', source: 'linkedin',
+    raw_text: null, credibility_score: 88, embedding: null, created_at: '2025-02-10T15:00:00Z',
+    applications: [],
+    parsed: {
+      name: 'Jennifer Wu', email: 'jennifer.wu@berkeley.edu', phone: '+1 510 555 0134',
+      linkedin_url: 'https://linkedin.com/in/jennifer-wu-ml',
+      skills: ['Python', 'PyTorch', 'TensorFlow', 'MLOps', 'Kubernetes', 'LLMs', 'Spark', 'vLLM'],
+      languages: ['English', 'Mandarin'],
+      education: [{ degree: 'Ph.D. Computer Science', institution: 'UC Berkeley', year: '2020' }],
+      experience: [
+        { company: 'Cohere', role: 'Senior ML Engineer', start_date: '2021-09', end_date: null, duration_months: 30, description: 'LLM inference optimization. Reduced serving costs by 45% through quantization.' },
+        { company: 'Scale AI', role: 'ML Engineer', start_date: '2020-06', end_date: '2021-08', duration_months: 14, description: 'Data labeling pipeline automation using active learning.' },
+      ],
+      gaps: [], red_flags: [],
+    },
+  },
+  {
+    id: 'mock-c-17', name: 'Omar Hassan', email: 'omar.hassan@gmail.com', source: 'upload',
+    raw_text: null, credibility_score: 76, embedding: null, created_at: '2025-02-16T11:00:00Z',
+    applications: [],
+    parsed: {
+      name: 'Omar Hassan', email: 'omar.hassan@gmail.com', phone: '+49 176 555 0189',
+      linkedin_url: 'https://linkedin.com/in/omar-hassan-ml',
+      skills: ['Python', 'PyTorch', 'MLOps', 'Kubernetes', 'Docker', 'FastAPI', 'Ray'],
+      languages: ['English', 'Arabic', 'German'],
+      education: [{ degree: 'M.Sc. Machine Learning', institution: 'ETH Zürich', year: '2020' }],
+      experience: [
+        { company: 'DeepL', role: 'ML Engineer', start_date: '2021-01', end_date: null, duration_months: 38, description: 'Neural machine translation models. Improved BLEU scores by 12% on low-resource languages.' },
+        { company: 'Zalando', role: 'Data Scientist', start_date: '2020-03', end_date: '2020-12', duration_months: 9, description: 'Product recommendation system using collaborative filtering.' },
+      ],
+      gaps: [], red_flags: [],
+    },
+  },
+  {
+    id: 'mock-c-18', name: 'Claire Dubois', email: 'claire.dubois@gmail.com', source: 'linkedin',
+    raw_text: null, credibility_score: 81, embedding: null, created_at: '2025-02-18T13:00:00Z',
+    applications: [],
+    parsed: {
+      name: 'Claire Dubois', email: 'claire.dubois@gmail.com', phone: '+33 6 12 34 56 78',
+      linkedin_url: 'https://linkedin.com/in/claire-dubois-ml',
+      skills: ['Python', 'PyTorch', 'Scikit-learn', 'MLOps', 'Docker', 'Airflow', 'NLP'],
+      languages: ['English', 'French'],
+      education: [{ degree: 'M.Sc. Data Science', institution: 'École Polytechnique', year: '2019' }],
+      experience: [
+        { company: 'Dataiku', role: 'ML Engineer', start_date: '2020-06', end_date: null, duration_months: 45, description: 'AutoML feature development. Built automated feature engineering pipeline.' },
+        { company: 'BNP Paribas', role: 'Data Scientist', start_date: '2019-03', end_date: '2020-05', duration_months: 14, description: 'Credit risk modeling using gradient boosting. Improved default prediction by 22%.' },
+      ],
+      gaps: [], red_flags: [],
+    },
+  },
 ]
 
 const _candidateMap = new Map(_candidates.map((c) => [c.id, c]))
@@ -515,6 +761,32 @@ const _applications: Application[] = [
   // Raj Patel across FSE & Designer
   { id: 'mock-a-29', candidate_id: 'mock-c-10', job_id: 'mock-job-1', match_score: 33, credibility_score: 52, interview_score: 0, overall_score: 33, status: 'inbox', interview_date: null, interview_room_url: null, video_url: null, transcript: null, analysis: null, attention_events: null, custom_answers: null, created_at: '2025-02-23T15:00:00Z', candidates: _candidateMap.get('mock-c-10') },
   { id: 'mock-a-30', candidate_id: 'mock-c-10', job_id: 'mock-job-2', match_score: 11, credibility_score: 52, interview_score: 0, overall_score: 11, status: 'inbox', interview_date: null, interview_room_url: null, video_url: null, transcript: null, analysis: null, attention_events: null, custom_answers: null, created_at: '2025-02-23T15:00:00Z', candidates: _candidateMap.get('mock-c-10') },
+
+  // ─── Additional candidates with non-inbox statuses ─────────────────────────────
+
+  // Kevin Liu - Full-Stack (interview_scheduled)
+  { id: 'mock-a-31', candidate_id: 'mock-c-11', job_id: 'mock-job-1', match_score: 89, credibility_score: 86, interview_score: 0, overall_score: 89, status: 'interview_scheduled', interview_date: '2025-03-20T15:00:00Z', interview_room_url: 'http://localhost:5173/join/mock-a-31', video_url: null, transcript: null, analysis: null, attention_events: null, custom_answers: null, created_at: '2025-01-19T09:00:00Z', candidates: _candidateMap.get('mock-c-11') },
+
+  // Sofia Martinez - Full-Stack (shortlisted)
+  { id: 'mock-a-32', candidate_id: 'mock-c-12', job_id: 'mock-job-1', match_score: 85, credibility_score: 83, interview_score: 0, overall_score: 85, status: 'shortlisted', interview_date: null, interview_room_url: null, video_url: null, transcript: null, analysis: null, attention_events: null, custom_answers: null, created_at: '2025-01-23T11:00:00Z', candidates: _candidateMap.get('mock-c-12') },
+
+  // Nathan Brooks - Full-Stack (interview_done)
+  { id: 'mock-a-33', candidate_id: 'mock-c-13', job_id: 'mock-job-1', match_score: 78, credibility_score: 78, interview_score: 74, overall_score: 76, status: 'interview_done', interview_date: '2025-03-10T10:00:00Z', interview_room_url: 'http://localhost:5173/join/mock-a-33', video_url: null, transcript: null, analysis: { answer_quality_score: 74, communication_score: 76, attention_score: 78, interview_score: 74, summary: 'Nathan showed solid full-stack skills with good practical experience. Communication was clear and structured. Some gaps in system design depth but strong execution focus.', strengths: ['Strong React and TypeScript execution', 'Good understanding of product requirements', 'Practical problem-solving approach'], concerns: ['Limited experience with large-scale systems', 'Could develop deeper architectural thinking'], per_question: [{ question: "Walk me through a complex system you've built from scratch at scale.", score: 72, notes: 'Described merchant dashboard at Grubhub. Good scope but lacked scale metrics.' }, { question: 'How do you approach API design and versioning?', score: 76, notes: 'Solid REST principles, mentioned OpenAPI specs.' }, { question: 'Describe a production incident you owned end-to-end.', score: 74, notes: 'Database connection pool exhaustion. Good debugging process.' }, { question: 'How do you ensure code quality in a fast-moving team?', score: 75, notes: 'PR reviews, testing, CI/CD pipeline. Standard but solid.' }, { question: 'What does great frontend architecture look like to you?', score: 73, notes: 'Component-based thinking, state management basics covered.' }] }, attention_events: [{ type: 'gaze_away', timestamp: 156 }], custom_answers: null, created_at: '2025-02-09T14:00:00Z', candidates: _candidateMap.get('mock-c-13') },
+
+  // Maya Patel - Designer (final_round)
+  { id: 'mock-a-34', candidate_id: 'mock-c-14', job_id: 'mock-job-2', match_score: 92, credibility_score: 90, interview_score: 89, overall_score: 90, status: 'final_round', interview_date: '2025-03-06T14:00:00Z', interview_room_url: 'http://localhost:5173/join/mock-a-34', video_url: null, transcript: null, analysis: { answer_quality_score: 91, communication_score: 90, attention_score: 86, interview_score: 89, summary: 'Maya demonstrated exceptional design leadership and strategic thinking. Her work at Airbnb and Uber shows ability to drive impact at scale. Strong candidate for senior role.', strengths: ['Proven impact metrics at scale', 'Excellent stakeholder management', 'Deep design systems expertise', 'Strong research methodology'], concerns: ['May expect significant autonomy — ensure role scope matches'], per_question: [{ question: "Walk me through a design decision you're proud of and the process behind it.", score: 93, notes: 'Airbnb booking flow redesign. Exceptional process and measurable outcomes.' }, { question: 'How do you handle stakeholder pushback on your design choices?', score: 89, notes: 'Data-driven approach with user testing evidence. Very mature.' }, { question: "Describe how you've contributed to or built a design system.", score: 91, notes: 'Led component library at Uber. Strong governance process.' }, { question: 'How do you prioritize user research vs. fast iteration?', score: 88, notes: 'Good balance. Research for direction, iteration for refinement.' }, { question: 'What does good design collaboration with engineers look like?', score: 87, notes: 'Embedded in eng teams, shared tooling, regular syncs.' }] }, attention_events: [{ type: 'tab_switch', timestamp: 298 }], custom_answers: null, created_at: '2025-02-02T10:00:00Z', candidates: _candidateMap.get('mock-c-14') },
+
+  // Alex Thompson - Designer (interview_scheduled)
+  { id: 'mock-a-35', candidate_id: 'mock-c-15', job_id: 'mock-job-2', match_score: 76, credibility_score: 72, interview_score: 0, overall_score: 76, status: 'interview_scheduled', interview_date: '2025-03-22T11:00:00Z', interview_room_url: 'http://localhost:5173/join/mock-a-35', video_url: null, transcript: null, analysis: null, attention_events: null, custom_answers: null, created_at: '2025-02-15T09:00:00Z', candidates: _candidateMap.get('mock-c-15') },
+
+  // Jennifer Wu - ML (final_round)
+  { id: 'mock-a-36', candidate_id: 'mock-c-16', job_id: 'mock-job-3', match_score: 91, credibility_score: 88, interview_score: 86, overall_score: 88, status: 'final_round', interview_date: '2025-03-08T16:00:00Z', interview_room_url: 'http://localhost:5173/join/mock-a-36', video_url: null, transcript: null, analysis: { answer_quality_score: 88, communication_score: 84, attention_score: 87, interview_score: 86, summary: 'Jennifer brings exceptional LLM expertise from Cohere with strong production experience. Technical depth is impressive, communication style is precise though sometimes overly technical for non-ML audiences.', strengths: ['Deep LLM inference optimization expertise', 'Strong production ML systems experience', 'Quantifiable impact on cost reduction', 'Research background with practical focus'], concerns: ['Communication can be overly technical', 'Limited leadership experience'], per_question: [{ question: 'How do you approach productionizing a new ML model?', score: 90, notes: 'Excellent — covered evaluation, staging, canary, monitoring comprehensively.' }, { question: 'Describe your experience with LLMs and prompt engineering.', score: 92, notes: 'Outstanding depth from Cohere work. Quantization, vLLM, batching optimization.' }, { question: 'How do you debug a model that performs well offline but poorly in production?', score: 86, notes: 'Strong systematic approach. Distribution shift, feature monitoring, cohort analysis.' }, { question: "Walk me through a data pipeline you've built at scale.", score: 82, notes: 'Solid but less depth here compared to modeling work.' }, { question: 'How do you stay current with the rapidly evolving ML landscape?', score: 84, notes: 'Active researcher, follows key labs, internal reading groups.' }] }, attention_events: [{ type: 'gaze_away', timestamp: 342 }], custom_answers: null, created_at: '2025-02-11T15:00:00Z', candidates: _candidateMap.get('mock-c-16') },
+
+  // Omar Hassan - ML (shortlisted)
+  { id: 'mock-a-37', candidate_id: 'mock-c-17', job_id: 'mock-job-3', match_score: 79, credibility_score: 76, interview_score: 0, overall_score: 79, status: 'shortlisted', interview_date: null, interview_room_url: null, video_url: null, transcript: null, analysis: null, attention_events: null, custom_answers: null, created_at: '2025-02-17T11:00:00Z', candidates: _candidateMap.get('mock-c-17') },
+
+  // Claire Dubois - ML (interview_scheduled)
+  { id: 'mock-a-38', candidate_id: 'mock-c-18', job_id: 'mock-job-3', match_score: 74, credibility_score: 81, interview_score: 0, overall_score: 74, status: 'interview_scheduled', interview_date: '2025-03-25T14:00:00Z', interview_room_url: 'http://localhost:5173/join/mock-a-38', video_url: null, transcript: null, analysis: null, attention_events: null, custom_answers: null, created_at: '2025-02-19T13:00:00Z', candidates: _candidateMap.get('mock-c-18') },
 ]
 
 // Backlink applications onto candidates
@@ -640,6 +912,86 @@ export const api = {
       _appMap.set(appId, newApp)
 
       return newApp
+    },
+    addImported: (jobId: string): Application[] => {
+      const newApps: Application[] = []
+
+      for (const data of IMPORTED_CANDIDATES_DATA) {
+        const id = `mock-c-imported-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+        const appId = `mock-a-imported-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+
+        // Calculate match score based on job
+        let matchScore: number
+        if (jobId === 'mock-job-1') {
+          // Full-stack engineer - check for React, TypeScript, Node.js
+          const fseSkills = ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'GraphQL', 'AWS']
+          const matches = data.skills.filter(s => fseSkills.includes(s)).length
+          matchScore = Math.min(95, 50 + matches * 8 + Math.floor(Math.random() * 10))
+        } else if (jobId === 'mock-job-2') {
+          // Designer - check for Figma, User Research, Design Systems
+          const designSkills = ['Figma', 'User Research', 'Design Systems', 'Prototyping', 'Framer']
+          const matches = data.skills.filter(s => designSkills.includes(s)).length
+          matchScore = Math.min(95, 40 + matches * 12 + Math.floor(Math.random() * 10))
+        } else {
+          // ML Engineer - check for Python, PyTorch, LLMs, MLOps
+          const mlSkills = ['Python', 'PyTorch', 'TensorFlow', 'LLMs', 'MLOps', 'Kubernetes']
+          const matches = data.skills.filter(s => mlSkills.includes(s)).length
+          matchScore = Math.min(95, 45 + matches * 9 + Math.floor(Math.random() * 10))
+        }
+
+        const newCandidate: Candidate = {
+          id,
+          name: data.name,
+          email: data.email,
+          source: 'import',
+          raw_text: null,
+          credibility_score: data.credibility,
+          embedding: null,
+          created_at: new Date().toISOString(),
+          applications: [],
+          parsed: {
+            name: data.name,
+            email: data.email,
+            phone: null,
+            linkedin_url: `https://linkedin.com/in/${data.name.toLowerCase().replace(/\s+/g, '-')}`,
+            skills: data.skills,
+            languages: data.languages,
+            education: [data.education],
+            experience: data.experience,
+            gaps: [],
+            red_flags: [],
+          },
+        }
+
+        const newApp: Application = {
+          id: appId,
+          candidate_id: id,
+          job_id: jobId,
+          match_score: matchScore,
+          credibility_score: data.credibility,
+          interview_score: 0,
+          overall_score: matchScore,
+          status: 'inbox',
+          interview_date: null,
+          interview_room_url: null,
+          video_url: null,
+          transcript: null,
+          analysis: null,
+          attention_events: null,
+          custom_answers: null,
+          created_at: new Date().toISOString(),
+          candidates: newCandidate,
+        }
+
+        newCandidate.applications!.push(newApp)
+        _candidates.push(newCandidate)
+        _candidateMap.set(id, newCandidate)
+        _applications.push(newApp)
+        _appMap.set(appId, newApp)
+        newApps.push(newApp)
+      }
+
+      return newApps
     },
   },
 

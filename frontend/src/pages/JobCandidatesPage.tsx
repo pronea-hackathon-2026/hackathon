@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, List, LayoutGrid, Search, Upload, X, Link, Check, Copy, UserPlus,
+  ArrowLeft, List, LayoutGrid, Search, X, Link, Check, Copy, UserPlus, Download,
 } from 'lucide-react'
 import SimulateCVModal from '@/components/SimulateCVModal'
+import ImportModal from '@/components/ImportModal'
 import CandidateDrawer from '@/components/CandidateDrawer'
 import CandidateAvatar from '@/components/CandidateAvatar'
 import { Button } from '@/components/ui/button'
@@ -46,6 +47,7 @@ export default function JobCandidatesPage() {
   const [showUpload, setShowUpload] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [showAddCandidate, setShowAddCandidate] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [drawerCandidateId, setDrawerCandidateId] = useState<string | null>(null)
 
   const isScoringRef = useRef(false)
@@ -230,9 +232,9 @@ export default function JobCandidatesPage() {
         >
           {linkCopied ? <Check size={16} /> : <Link size={16} />}
         </Button>
-        <Button variant="outline" size="sm" onClick={() => setShowUpload(true)}>
-          <Upload size={14} />
-          Upload CV
+        <Button variant="outline" size="sm" onClick={() => setShowImport(true)}>
+          <Download size={14} />
+          Import Candidates
         </Button>
         <Button size="sm" onClick={() => setShowAddCandidate(true)}>
           <UserPlus size={14} />
@@ -289,7 +291,7 @@ export default function JobCandidatesPage() {
                     className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent text-left"
                     onClick={() => navigate(`/candidate/${c.id}`)}
                   >
-                    <CandidateAvatar candidateId={c.id} name={c.name} className="h-8 w-8" />
+                    <CandidateAvatar candidateId={c.id} name={c.name} email={c.email} className="h-8 w-8" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">{c.name}</p>
                       <p className="text-xs text-muted-foreground">{c.email}</p>
@@ -378,7 +380,7 @@ export default function JobCandidatesPage() {
                           style={{ gridTemplateColumns: '30% 24% 12% 14% 20%' }}
                         >
                           <div className="px-4 py-2 flex items-center gap-3">
-                            <CandidateAvatar candidateId={candidate.id} name={candidate.name} className="h-8 w-8 shrink-0" />
+                            <CandidateAvatar candidateId={candidate.id} name={candidate.name} email={candidate.email} className="h-8 w-8 shrink-0" />
                             <span className="font-medium truncate">{candidate.name}</span>
                           </div>
                           <div className="px-4 py-2 flex items-center text-muted-foreground truncate">{candidate.email ?? '—'}</div>
@@ -428,7 +430,7 @@ export default function JobCandidatesPage() {
           </DialogHeader>
           <div className="py-4">
             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors">
-              <Upload size={24} className="text-muted-foreground mb-2" />
+              <Download size={24} className="text-muted-foreground mb-2" />
               <span className="text-sm text-muted-foreground">
                 {uploading ? 'Uploading & parsing…' : 'Click to upload PDF or DOCX'}
               </span>
@@ -443,6 +445,16 @@ export default function JobCandidatesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Import Modal */}
+      <ImportModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        jobId={jobId ?? 'mock-job-1'}
+        onImportComplete={() => {
+          if (jobId) loadApplications(jobId)
+        }}
+      />
     </div>
   )
 }

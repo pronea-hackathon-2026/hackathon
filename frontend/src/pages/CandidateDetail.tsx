@@ -156,7 +156,7 @@ export default function CandidateDetail() {
 
           {/* Identity */}
           <div className="flex items-start gap-4 rounded-xl border border-border bg-background p-5">
-            <CandidateAvatar candidateId={candidate.id} name={candidate.name} className="h-14 w-14 shrink-0" />
+            <CandidateAvatar candidateId={candidate.id} name={candidate.name} email={candidate.email} className="h-14 w-14 shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-3xl font-semibold tracking-[-0.03em] text-foreground">{candidate.name}</p>

@@ -106,7 +106,7 @@ export default function CandidatesPage() {
                   >
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-3">
-                        <CandidateAvatar candidateId={c.id} name={c.name} className="h-8 w-8 shrink-0" />
+                        <CandidateAvatar candidateId={c.id} name={c.name} email={c.email} className="h-8 w-8 shrink-0" />
                         <span className="font-medium">{c.name}</span>
                       </div>
                     </td>

@@ -5,6 +5,7 @@ import { getCandidateAvatarUrl } from '@/lib/candidate-avatars'
 interface CandidateAvatarProps {
   candidateId?: string | null
   name: string
+  email?: string | null
   className?: string
   fallbackClassName?: string
 }
@@ -21,10 +22,11 @@ function initials(name: string) {
 export default function CandidateAvatar({
   candidateId,
   name,
+  email,
   className,
   fallbackClassName,
 }: CandidateAvatarProps) {
-  const src = getCandidateAvatarUrl(candidateId)
+  const src = getCandidateAvatarUrl(candidateId, email)
 
   return (
     <Avatar className={className}>

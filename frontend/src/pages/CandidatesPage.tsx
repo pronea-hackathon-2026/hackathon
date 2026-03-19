@@ -78,21 +78,20 @@ export default function CandidatesPage() {
             <table className="w-full text-sm table-fixed">
               <colgroup>
                 <col className="w-[30%]" />
-                <col className="w-[22%]" />
+                <col className="w-[24%]" />
                 <col className="w-[10%]" />
                 <col className="w-[14%]" />
                 <col className="w-[14%]" />
-                <col className="w-[10%]" />
+                <col className="w-[8%]" />
               </colgroup>
               <thead>
                 <tr className="border-b border-border bg-card/50">
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Candidate</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Email</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Source</th>
-                  <th className="text-center px-4 py-3 font-medium text-muted-foreground">Social Credit</th>
                   <th className="text-center px-4 py-3 font-medium text-muted-foreground overflow-hidden">
                     <span className="block truncate" title={activeJob?.title}>
-                      {activeJob ? `Fit · ${activeJob.title}` : 'Position Fit'}
+                      {activeJob ? `Score · ${activeJob.title}` : 'Score'}
                     </span>
                   </th>
                   <th className="text-center px-4 py-3 font-medium text-muted-foreground">Applications</th>
@@ -117,12 +116,7 @@ export default function CandidatesPage() {
                     </td>
                     <td className="px-4 py-2">
                       <div className="flex justify-center">
-                        <ScoreGauge score={c.credibility_score ?? 0} label="Credibility" size={64} />
-                      </div>
-                    </td>
-                    <td className="px-4 py-2">
-                      <div className="flex justify-center">
-                        <ScoreGauge score={scoreForJob(c, activeJobId)} label="Match" size={64} />
+                        <ScoreGauge score={scoreForJob(c, activeJobId)} label="Score" size={64} />
                       </div>
                     </td>
                     <td className="px-4 py-2 text-muted-foreground text-center">

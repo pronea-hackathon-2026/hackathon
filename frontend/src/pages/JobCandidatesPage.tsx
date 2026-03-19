@@ -347,13 +347,12 @@ export default function JobCandidatesPage() {
           ) : (
             <div className="rounded-lg border border-border overflow-hidden">
               {/* Header */}
-              <div className="grid text-sm border-b border-border bg-card/50" style={{ gridTemplateColumns: '28% 22% 10% 12% 14% 14%' }}>
+              <div className="grid text-sm border-b border-border bg-card/50" style={{ gridTemplateColumns: '30% 24% 12% 14% 20%' }}>
                 <div className="px-4 py-3 font-medium text-muted-foreground">Candidate</div>
                 <div className="px-4 py-3 font-medium text-muted-foreground">Email</div>
                 <div className="px-4 py-3 font-medium text-muted-foreground">Source</div>
                 <div className="px-4 py-3 font-medium text-muted-foreground">Status</div>
-                <div className="px-4 py-3 font-medium text-muted-foreground text-center">Credibility</div>
-                <div className="px-4 py-3 font-medium text-muted-foreground text-center">Match</div>
+                <div className="px-4 py-3 font-medium text-muted-foreground text-center">Score</div>
               </div>
               {/* Animated rows */}
               <LayoutGroup>
@@ -376,7 +375,7 @@ export default function JobCandidatesPage() {
                           }}
                           onClick={() => setDrawerCandidateId(candidate.id)}
                           className="grid text-sm border-b border-border last:border-0 hover:bg-accent/50 cursor-pointer"
-                          style={{ gridTemplateColumns: '28% 22% 10% 12% 14% 14%' }}
+                          style={{ gridTemplateColumns: '30% 24% 12% 14% 20%' }}
                         >
                           <div className="px-4 py-2 flex items-center gap-3">
                             <CandidateAvatar candidateId={candidate.id} name={candidate.name} className="h-8 w-8 shrink-0" />
@@ -390,10 +389,7 @@ export default function JobCandidatesPage() {
                             {app.status?.replace(/_/g, ' ') ?? '—'}
                           </div>
                           <div className="px-4 py-2 flex items-center justify-center">
-                            <ScoreGauge score={candidate.credibility_score ?? 0} label="Credibility" size={64} />
-                          </div>
-                          <div className="px-4 py-2 flex items-center justify-center">
-                            <ScoreGauge score={app.match_score ?? 0} label="Match" size={64} />
+                            <ScoreGauge score={app.match_score ?? 0} label="Score" size={64} />
                           </div>
                         </motion.div>
                       )

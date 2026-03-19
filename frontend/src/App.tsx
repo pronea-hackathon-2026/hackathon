@@ -8,6 +8,8 @@ import CandidateInterviewView from '@/pages/CandidateInterviewView'
 import VideoReview from '@/pages/VideoReview'
 import ThankYou from '@/pages/ThankYou'
 import ApplyPage from '@/pages/ApplyPage'
+import ExtensionShowcase from '@/pages/ExtensionShowcase'
+import ProfileMockup from '@/pages/ProfileMockup'
 import { AIProgressProvider } from '@/lib/ai-progress'
 import AIProgressBar from '@/components/AIProgressBar'
 
@@ -17,6 +19,8 @@ export default function App() {
       <AIProgressBar />
       <Routes>
         {/* Public routes (no sidebar) */}
+        <Route path="/" element={<ProfileMockup />} />
+        <Route path="/extension-demo" element={<ExtensionShowcase />} />
         <Route path="/apply/:jobId" element={<ApplyPage />} />
         <Route path="/interview/:applicationId" element={<InterviewRoom />} />
         <Route path="/join/:applicationId" element={<CandidateInterviewView />} />

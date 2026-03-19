@@ -32,9 +32,12 @@ export default function JobCandidatesPage() {
   const { jobId } = useParams<{ jobId: string }>()
   const navigate = useNavigate()
   const [job, setJob] = useState<Job | null>(null)
+  const [allJobs, setAllJobs] = useState<Job[]>([])
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState<ViewMode>('list')
+  const [view, setView] = useState<ViewMode>(() => (localStorage.getItem('boardView') as ViewMode) ?? 'list')
+
+  const switchView = (v: ViewMode) => { setView(v); localStorage.setItem('boardView', v) }
   const [scoringState, setScoringState] = useState<ScoringState | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Candidate[] | null>(null)
@@ -71,9 +74,13 @@ export default function JobCandidatesPage() {
 
   useEffect(() => {
     if (!jobId) return
+    // Reset scoring state from any previous job before loading the new one
+    isScoringRef.current = false
+    setScoringState(null)
+    setApplications([])
     api.jobs.list().then((jobs) => {
-      const found = jobs.find((j) => j.id === jobId) ?? null
-      setJob(found)
+      setAllJobs(jobs)
+      setJob(jobs.find((j) => j.id === jobId) ?? null)
     }).catch(console.error)
     loadApplications(jobId)
   }, [jobId])
@@ -160,13 +167,25 @@ export default function JobCandidatesPage() {
           <ArrowLeft size={16} />
         </Button>
         <div className="flex-1 min-w-0">
-          <h1 className="font-semibold text-lg truncate">{job?.title ?? 'Candidates'}</h1>
+          {allJobs.length > 1 ? (
+            <select
+              value={jobId}
+              onChange={(e) => navigate(`/jobs/${e.target.value}/candidates`, { replace: true })}
+              className="font-semibold text-lg bg-transparent border-0 outline-none cursor-pointer hover:text-primary transition-colors truncate max-w-full pr-2"
+            >
+              {allJobs.map((j) => (
+                <option key={j.id} value={j.id}>{j.title}</option>
+              ))}
+            </select>
+          ) : (
+            <h1 className="font-semibold text-lg truncate">{job?.title ?? 'Candidates'}</h1>
+          )}
         </div>
 
         {/* View toggle */}
         <div className="flex items-center rounded-md border border-border overflow-hidden shrink-0">
           <button
-            onClick={() => setView('list')}
+            onClick={() => switchView('list')}
             title="List view"
             className={`px-3 py-1.5 flex items-center gap-1.5 text-sm transition-colors ${
               view === 'list' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent text-muted-foreground'
@@ -176,7 +195,7 @@ export default function JobCandidatesPage() {
             List
           </button>
           <button
-            onClick={() => setView('kanban')}
+            onClick={() => switchView('kanban')}
             title="Kanban view"
             className={`px-3 py-1.5 flex items-center gap-1.5 text-sm transition-colors border-l border-border ${
               view === 'kanban' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent text-muted-foreground'

@@ -15,7 +15,7 @@ export const handlers = [
     }),
   ),
   http.get(`${apiBase}/jobs`, () => HttpResponse.json({ data: jobs })),
-  http.get(`${apiBase}/jobs/:jobId/candidates`, ({ params }) => {
+  http.get(`${apiBase}/jobs/:jobId/candidates`, ({ params }: { params: Record<string, string | undefined> }) => {
     const job = jobs.find((item) => item.id === params.jobId)
     if (!job) {
       return HttpResponse.json({ error: 'Job not found' }, { status: 404 })
@@ -28,7 +28,7 @@ export const handlers = [
       },
     })
   }),
-  http.get(`${apiBase}/candidates/:candidateId`, ({ params }) => {
+  http.get(`${apiBase}/candidates/:candidateId`, ({ params }: { params: Record<string, string | undefined> }) => {
     const candidate = candidates.find((item) => item.id === params.candidateId)
     if (!candidate) {
       return HttpResponse.json({ error: 'Candidate not found' }, { status: 404 })
@@ -36,7 +36,7 @@ export const handlers = [
 
     return HttpResponse.json({ data: candidate })
   }),
-  http.get(`${apiBase}/interviews/:applicationId`, ({ params }) => {
+  http.get(`${apiBase}/interviews/:applicationId`, ({ params }: { params: Record<string, string | undefined> }) => {
     const interview = interviews.find((item) => item.id === params.applicationId)
     if (!interview) {
       return HttpResponse.json({ error: 'Interview not found' }, { status: 404 })
